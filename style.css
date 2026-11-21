@@ -212,3 +212,16 @@ footer{border-top:1px solid var(--line);padding:40px 0;color:var(--muted);font-s
 .hero-actions.center{justify-content:center}
 .section-head .eyebrow{margin-bottom:14px}
 .form-hint{display:none;margin-top:8px;padding:10px 12px;border-radius:10px;background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.25);color:var(--cyan);font-size:.92rem}
+#services .cards{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.nav-links a,.brand,.nav-cta .btn{white-space:nowrap}
+#services .card{padding:26px}
+@media (max-width:1180px){.nav-links{gap:18px;font-size:.95rem}}
+@media (max-width:1040px){
+  .menu-btn{display:block}
+  .nav-links{position:absolute;top:72px;inset-inline:0;flex-direction:column;gap:0;background:var(--bg-2);border-bottom:1px solid var(--line);display:none}
+  .nav-links.open{display:flex}
+  .nav-links a{display:block;padding:14px 4%}
+}
+#equipment .card .tag{position:absolute;top:22px;left:22px;margin:0;direction:ltr}
+#equipment .cards{grid-template-columns:repeat(2,1fr)}
+@media (max-width:760px){#equipment .cards{grid-template-columns:1fr}}
