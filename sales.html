@@ -11,13 +11,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="alternate" hreflang="en" href="en/sales.html">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <header class="site-header"><div class="container nav">
 <a href="index.html" class="brand"><img src="logo.svg" alt="Closed Circuit"><span>Closed Circuit</span></a>
 <ul class="nav-links"><li><a href="index.html">الرئيسية</a></li><li><a href="energy.html">الطاقة الشمسية</a></li><li><a href="home-assistant.html">المنزل الذكي</a></li><li><a href="broadcast.html">البث والاستوديوهات</a></li><li><a href="sales.html" class="active">High-Ticket Closing</a></li></ul>
-<div class="nav-cta"><a href="https://calendly.com/zkojok" target="_blank" rel="noopener" class="btn btn-ghost btn-sm">احجز مكالمة</a><a href="https://wa.me/96170368646" target="_blank" rel="noopener" class="btn btn-primary btn-sm">واتساب</a><button class="menu-btn" aria-label="القائمة">☰</button></div>
+<div class="nav-cta"><a class="lang-switch" href="en/sales.html" hreflang="en" lang="en">EN</a><a href="https://calendly.com/zkojok" target="_blank" rel="noopener" class="btn btn-ghost btn-sm">احجز مكالمة</a><a href="https://wa.me/96170368646" target="_blank" rel="noopener" class="btn btn-primary btn-sm">واتساب</a><button class="menu-btn" aria-label="القائمة">☰</button></div>
 </div></header>
 <main>
 <section class="hero"><div class="grid-bg"></div><div class="container hero-inner">
@@ -83,7 +84,7 @@
 <form class="lead-form" action="https://formspree.io/f/myeejbol" method="POST">
 <div class="form-row"><div class="field"><label for="n">الاسم</label><input id="n" name="name" required placeholder="اسمك الكامل"></div>
 <div class="field"><label for="p">رقم الهاتف</label><input id="p" name="phone" type="tel" required placeholder="+961 ..." dir="ltr"></div></div>
-<div class="field"><label for="s">الخدمة المطلوبة</label><select id="s" name="service"><option>استشارات الطاقة الشمسية</option><option>أتمتة المنزل الذكي (Home Assistant)</option><option>أنظمة البث والاستوديوهات (Broadcast & AV)</option><option selected>تعلّم مهارة High-Ticket Closing</option><option>كلوزر لبزنسي (High-Ticket Closing)</option><option>غير ذلك</option></select><div class="form-hint">لتتعلّم المهارة، التسجيل بيكمل على صفحة الأكاديمية. بعد ما تبعت الطلب رح ننقلك لهونيك لتعبّي بياناتك.</div></div>
+<div class="field"><label for="s">الخدمة المطلوبة</label><select id="s" name="service"><option>استشارات الطاقة الشمسية</option><option>أتمتة المنزل الذكي (Home Assistant)</option><option>أنظمة البث والاستوديوهات (Broadcast & AV)</option><option selected data-learn="1">تعلّم مهارة High-Ticket Closing</option><option>كلوزر لبزنسي (High-Ticket Closing)</option><option>غير ذلك</option></select><div class="form-hint">لتتعلّم المهارة، التسجيل بيكمل على صفحة الأكاديمية. بعد ما تبعت الطلب رح ننقلك لهونيك لتعبّي بياناتك.</div></div>
 <div class="field"><label for="m">رسالتك</label><textarea id="m" name="message" placeholder="أخبرنا باختصار عن احتياجك"></textarea></div>
 <button type="submit" class="btn btn-primary">أرسل الطلب</button>
 <div class="form-status" role="status"></div>
