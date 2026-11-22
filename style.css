@@ -273,3 +273,11 @@ html[lang="en"] .lang-switch{font-family:"Tajawal",sans-serif}
   .nav-links{gap:16px;font-size:.92rem}
   .nav-cta .btn-primary{display:none}
 }
+/* Founder */
+.founder{display:grid;grid-template-columns:300px 1fr;gap:48px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:40px}
+.founder img{width:300px;height:300px;object-fit:cover;border-radius:50%;border:3px solid rgba(34,211,238,.45);box-shadow:0 16px 48px rgba(34,211,238,.15)}
+.founder h2{font-size:2rem;margin:10px 0 4px}
+.founder .role{color:var(--cyan);font-weight:700;margin-bottom:16px}
+.founder p{color:var(--muted)}
+.founder .hero-actions{margin-top:24px}
+@media (max-width:860px){.founder{grid-template-columns:1fr;text-align:center;padding:28px}.founder img{width:220px;height:220px;margin:0 auto}.founder .hero-actions{justify-content:center}}
