@@ -6,6 +6,30 @@ document.addEventListener('click', function (e) {
   }
 });
 
+// Analytics: send a GA4 event for contact, booking and store clicks
+function track(name, params) {
+  if (typeof gtag === 'function') gtag('event', name, params || {});
+}
+
+document.addEventListener('click', function (e) {
+  var a = e.target.closest('a[href]');
+  if (!a) return;
+  var href = a.getAttribute('href');
+  var name = null;
+  if (/^https:\/\/(wa\.me|api\.whatsapp\.com)\//.test(href)) name = 'whatsapp_click';
+  else if (/^mailto:/.test(href)) name = 'email_click';
+  else if (/^tel:/.test(href)) name = 'phone_click';
+  else if (/calendly\.com/.test(href)) name = 'booking_click';
+  else if (/alztechpro\.com/.test(href)) name = 'store_click';
+  else if (/ene\.ac/.test(href)) name = 'masterclass_click';
+  if (!name) return;
+  track(name, {
+    link_url: href.split('?')[0],
+    link_text: (a.textContent || '').trim().slice(0, 60),
+    page: location.pathname
+  });
+});
+
 // Footer year
 var y = document.getElementById('year');
 if (y) y.textContent = new Date().getFullYear();
@@ -73,6 +97,7 @@ document.querySelectorAll('form.lead-form').forEach(function (form) {
       headers: { 'Accept': 'application/json' }
     }).then(function (res) {
       if (!res.ok) throw new Error('bad');
+      track('generate_lead', { service: data.get('service') || '', page: location.pathname });
       form.reset();
       if (learn) { goToEne(); return; }
       status.className = 'form-status ok';
