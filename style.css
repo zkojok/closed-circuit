@@ -331,3 +331,50 @@ html[lang="en"] .lang-switch{font-family:"Tajawal",sans-serif}
 .calc-spec dd{font-weight:700;font-size:.93rem;unicode-bidi:plaintext}
 .calc-spec p{color:var(--muted);font-size:.8rem;margin-top:8px}
 @media (max-width:860px){.calc-opts{grid-template-columns:1fr}}
+
+/* Studio planner */
+#studio-planner{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:28px;display:grid;grid-template-columns:minmax(0,1fr);gap:24px}
+.sp-flow,.sp-in>*,.sp-res>*{min-width:0}
+.sp-in{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;align-items:end}
+.sp-in label span,.sp-seg>span{display:block;font-weight:700;font-size:.9rem;margin-bottom:6px}
+.sp-in input,.sp-in select{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;color:var(--text);font-family:inherit;font-size:1rem}
+.sp-in input:focus,.sp-in select:focus{outline:none;border-color:var(--cyan)}
+.sp-seg div{display:flex;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:3px}
+.sp-seg button{flex:1;border:0;background:none;color:var(--muted);font-family:inherit;font-weight:700;font-size:.82rem;padding:7px 6px;border-radius:999px;cursor:pointer;white-space:nowrap}
+.sp-seg button.on{background:var(--grad);color:#05211A}
+.sp-in .sp-seg{grid-column:span 2}
+.sp-flow{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px}
+.sp-scroll{overflow-x:auto;direction:ltr}
+#sp-svg{width:100%;min-width:720px;height:auto;display:block}
+.sp-hint{display:none;color:var(--muted);font-size:.8rem;text-align:center;margin-top:4px}
+.sp-info{margin-top:10px;padding:10px 12px;border-radius:10px;background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.25);color:var(--muted);font-size:.93rem;min-height:48px}
+.sp-info b{color:var(--text);margin-inline-end:6px}
+.sp-node{cursor:pointer;outline:none}
+.sp-node rect{fill:var(--card);stroke:var(--line);stroke-width:1.5;transition:stroke .2s,fill .2s}
+.sp-node.core rect{stroke:rgba(34,211,238,.6);stroke-width:2}
+.sp-node:hover rect,.sp-node:focus-visible rect{stroke:var(--cyan)}
+.sp-node.sel rect{stroke:var(--green);fill:rgba(52,211,153,.12);stroke-width:2.5}
+.sp-node text{text-anchor:middle;font-family:"Tajawal",system-ui,sans-serif;pointer-events:none}
+.sp-t1{fill:var(--text);font-size:14px;font-weight:800}
+.sp-t2{fill:var(--muted);font-size:11.5px;direction:ltr;unicode-bidi:plaintext}
+.sp-edge{fill:none;stroke:rgba(34,211,238,.55);stroke-width:2;stroke-dasharray:7 6;animation:sp-flow 1.2s linear infinite}
+.sp-edge.ip{stroke:rgba(52,211,153,.6)}
+.sp-edge.sp-ret{stroke:rgba(147,161,184,.5)}
+.sp-edge.sp-sync{stroke:#FBBF24;stroke-dasharray:2 5;opacity:.8}
+.sp-edge.on{stroke:var(--green);stroke-width:3.5;opacity:1}
+.sp-arrowhead{fill:rgba(34,211,238,.8)}
+@keyframes sp-flow{to{stroke-dashoffset:-26}}
+@media (prefers-reduced-motion:reduce){.sp-edge{animation:none}}
+.sp-res{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.sp-res .calc-note,.sp-res .btn{grid-column:1/-1}
+.sp-res .calc-stat b{font-size:1.2rem}
+@media (max-width:980px){.sp-in{grid-template-columns:repeat(3,1fr)}.sp-in .sp-seg{grid-column:span 3}}
+@media (max-width:760px){
+  #studio-planner{padding:16px}
+  .sp-in{grid-template-columns:1fr 1fr}
+  .sp-in .sp-seg{grid-column:1/-1}
+  .sp-res{grid-template-columns:1fr 1fr}
+  .sp-hint{display:block}
+}
+.sp-edge.ndi{stroke:rgba(167,139,250,.75)}
+.sp-res .calc-warn{grid-column:1/-1}
