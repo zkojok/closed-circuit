@@ -294,3 +294,40 @@ html[lang="en"] .lang-switch{font-family:"Tajawal",sans-serif}
 .gallery span{position:absolute;inset-inline:0;bottom:0;padding:28px 16px 14px;font-size:.9rem;font-weight:600;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.78))}
 @media (max-width:860px){.gallery{grid-template-columns:1fr 1fr;grid-template-rows:auto}.gallery a{height:220px}.gallery a.g-big{grid-column:span 2;grid-row:auto;height:280px}}
 @media (min-width:861px){.gallery a:nth-child(3){grid-row:span 2}}
+
+/* Solar calculator */
+#solar-calc{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:28px}
+.calc-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:32px;align-items:start}
+.calc-row{display:grid;grid-template-columns:1fr 72px 88px;gap:10px;align-items:center;padding:6px 0;border-bottom:1px dashed var(--line)}
+.calc-row span small{color:var(--muted);font-size:.8rem;direction:ltr;display:inline-block}
+.calc-head{font-weight:700;color:var(--muted);font-size:.9rem;border-bottom:1px solid var(--line)}
+.calc-row input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 8px;color:var(--text);font-family:inherit;font-size:1rem;text-align:center}
+.calc-row input:focus{outline:none;border-color:var(--cyan)}
+.calc-out{display:block;margin-top:22px;font-weight:700}
+.calc-out b{color:var(--cyan)}
+.calc-out input{width:100%;margin-top:10px;accent-color:var(--cyan)}
+.calc-res{display:grid;grid-template-columns:1fr 1fr;gap:12px;position:sticky;top:96px}
+.calc-stat{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.calc-stat small{display:block;color:var(--muted);font-size:.85rem}
+.calc-stat b{display:block;font-size:1.35rem;font-weight:800;direction:ltr;text-align:start;unicode-bidi:plaintext;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.calc-stat em{display:block;font-style:normal;color:var(--muted);font-size:.82rem}
+.calc-warn{grid-column:1/-1;display:none;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.35);color:#FCD34D;border-radius:10px;padding:10px 12px;font-size:.92rem}
+.calc-note{grid-column:1/-1;color:var(--muted);font-size:.85rem}
+.calc-res .btn{grid-column:1/-1}
+@media (max-width:860px){
+  .calc-grid{grid-template-columns:1fr}
+  .calc-res{position:static}
+  #solar-calc{padding:18px}
+  .calc-row{grid-template-columns:1fr 60px 72px}
+}
+.calc-opts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
+.calc-opts label span{display:block;font-weight:700;font-size:.92rem;margin-bottom:6px}
+.calc-opts select,.calc-opts input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;color:var(--text);font-family:inherit;font-size:.95rem}
+.calc-opts select:focus,.calc-opts input:focus{outline:none;border-color:var(--cyan)}
+.calc-spec{grid-column:1/-1;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.calc-spec h4{font-size:1rem;font-weight:800;margin-bottom:6px}
+.calc-spec dl div{padding:7px 0;border-bottom:1px dashed var(--line)}
+.calc-spec dt{color:var(--muted);font-size:.82rem}
+.calc-spec dd{font-weight:700;font-size:.93rem;unicode-bidi:plaintext}
+.calc-spec p{color:var(--muted);font-size:.8rem;margin-top:8px}
+@media (max-width:860px){.calc-opts{grid-template-columns:1fr}}
