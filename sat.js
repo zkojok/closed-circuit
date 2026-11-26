@@ -55,10 +55,17 @@
   }
 
   // ---------- geometry ----------
-  var SATS = [
-    ['7W', 'Nilesat / Eutelsat 7°W', -7], ['13E', 'Eutelsat Hot Bird 13°E', 13], ['26E', 'Arabsat / Badr 26°E', 26],
-    ['10E', 'Eutelsat 10°E', 10], ['42E', 'Türksat 42°E', 42], ['52E', 'Yahsat 52.5°E', 52.5], ['c', t('مخصّص', 'Custom'), 0]
-  ];
+  // [orbital position °E, satellites] — main TV/broadcast slots
+  var SATS = {
+    am: [[-101, 'SES-1'], [-97, 'Galaxy 19'], [-61, 'Amazonas Nexus']],
+    atl: [[-34.5, 'Intelsat 35e'], [-30, 'Hispasat 30W-5 / 30W-6'], [-22, 'SES-4'], [-18, 'Intelsat 37e'], [-15, 'Telstar 12 Vantage'], [-14, 'Express AM8'], [-12.5, 'Eutelsat 12 West G'], [-11, 'Express AM44'], [-8, 'Eutelsat 8 West B'], [-7.3, 'Eutelsat 7 West A'], [-7, 'Nilesat 201 / 301'], [-5, 'Eutelsat 5 West B'], [-4, 'Amos 3'], [-0.8, 'Thor 5/6/7 · Intelsat 10-02']],
+    eu: [[3, 'Eutelsat 3B'], [4.8, 'Astra 4A / SES-5'], [7, 'Eutelsat 7B / 7C'], [9, 'Eutelsat 9B'], [10, 'Eutelsat 10B'], [13, 'Hot Bird 13F / 13G'], [16, 'Eutelsat 16A'], [19.2, 'Astra 1KR/1L/1M/1N/1P'], [21.5, 'Eutelsat 21B'], [23.5, 'Astra 3B / 3C'], [25.5, "Es'hailSat 1 / Eutelsat 25B"], [26, "Badr 4/5/6/7/8 (Arabsat), Es'hailSat 2"], [28.2, 'Astra 2E / 2F / 2G'], [30.5, 'Arabsat 5A / 6A'], [31.5, 'Astra 5B'], [33, 'Eutelsat 33E'], [36, 'Eutelsat 36D · Express AMU1'], [39, 'Hellas Sat 3 / 4'], [42, 'Türksat 3A / 4A / 5B']],
+    me: [[45, 'Azerspace 2 / Intelsat 38'], [46, 'Azerspace 1'], [50, 'Türksat 4B'], [51.5, 'Belintersat 1'], [52, 'TürkmenÄlem / Monacosat'], [52.5, 'Al Yah 1 (Yahsat)'], [53, 'Express AM6'], [56, 'Express AT1'], [57, 'NSS 12'], [62, 'Intelsat 39'], [66, 'Intelsat 17'], [68.5, 'Intelsat 20 / 36'], [70.5, 'Eutelsat 70B']],
+    asia: [[75, 'ABS-2 / 2A'], [76.5, 'Apstar 7'], [78.5, 'Thaicom 6 / 8'], [90, 'Yamal 401'], [91.5, 'MEASAT 3 / 3a / 3b'], [95, 'SES-8 / SES-12'], [100.5, 'AsiaSat 5'], [105.5, 'AsiaSat 7'], [108.2, 'SES-9'], [122, 'AsiaSat 9'], [138, 'Telstar 18 Vantage']]
+  };
+  var SATS_ALL = []; Object.keys(SATS).forEach(function (g) { SATS[g].forEach(function (x) { SATS_ALL.push(x[0]); }); });
+  var REG = { am: t('أميركا', 'Americas'), atl: t('الأطلسي', 'Atlantic'), eu: t('أوروبا والشرق الأوسط', 'Europe & MENA'), me: t('الشرق الأوسط وآسيا الوسطى', 'Middle East & Central Asia'), asia: t('آسيا والمحيط الهادئ', 'Asia-Pacific') };
+  var posTxt = function (l) { return f(Math.abs(l), Math.abs(l) % 1 ? 1 : 0) + '°' + (l < 0 ? 'W' : 'E'); };
   function geo(lat, lon, slon) {
     var Re = 6378.137, R = 42164, d2r = Math.PI / 180;
     var phi = lat * d2r, dl = (slon - lon) * d2r;
@@ -73,7 +80,7 @@
   // ---------- UI ----------
   var st = {
     std: 's2', mod: '8PSK', rate: '3/4', ro: 0.20, pil: true, sr: 27.5, br: null, last: 'sr', guard: 5,
-    sat: '7W', slon: -7, lat: 33.89, lon: 35.50, fdl: 11.7, eirp: 50, tpbw: 36, obo: 1,
+    sat: '-7', slon: -7, lat: 33.89, lon: 35.50, fdl: 11.7, eirp: 50, tpbw: 36, obo: 1,
     dish: 0.9, nf: 0.5, pol: 'H', decl: 5, off: 0, rain: 0, cnup: 20, cim: 20, ci: 25, impl: 0.5, mg: 1
   };
   function opt(v, cur, txt) { return '<option value="' + v + '"' + (String(v) === String(cur) ? ' selected' : '') + '>' + (txt == null ? v : txt) + '</option>'; }
@@ -93,7 +100,7 @@
     num('guard', 'Guard band', 1, '%') +
     '</div></div>' +
     '<div class="sc-box"><h3>' + t('2. الرابط (Link budget)', '2. Link budget') + '</h3><div class="sc-in">' +
-    '<label><span>' + t('القمر', 'Satellite') + '</span><select data-k="sat">' + SATS.map(function (s) { return opt(s[0], st.sat, s[1]); }).join('') + '</select></label>' +
+    '<label><span>' + t('القمر', 'Satellite') + '</span><select data-k="sat"></select></label>' +
     num('slon', t('موقع القمر', 'Orbital position'), 0.1, '°E') + num('lat', t('خط عرض المحطة', 'Site latitude'), 0.01, '°') + num('lon', t('خط طول المحطة', 'Site longitude'), 0.01, '°E') +
     '<label><span>Polarization</span><select data-k="pol">' + [['H', 'Horizontal (H)'], ['V', 'Vertical (V)'], ['L', 'Circular L'], ['R', 'Circular R']].map(function (x) { return opt(x[0], st.pol, x[1]); }).join('') + '</select></label>' +
     num('decl', t('الانحراف المغناطيسي', 'Magnetic declination'), 0.1, '°E') + num('off', t('زاوية الـ offset للصحن', 'Dish offset angle'), 0.5, '°') +
@@ -129,6 +136,12 @@
     $('[data-k=ro]').innerHTML = S.ro.map(function (r) { return opt(r, st.ro, r.toFixed(2)); }).join('');
     $('[data-k=pil]').value = st.pil ? '1' : '0';
     $('.sc-pil').style.display = st.std === 's' ? 'none' : '';
+    $('[data-k=sat]').innerHTML = Object.keys(SATS).map(function (g) {
+      return '<optgroup label="' + REG[g] + '">' + SATS[g].map(function (x) {
+        var el = geo(st.lat, st.lon, x[0]).el;
+        return opt(String(x[0]), st.sat, posTxt(x[0]) + ' · ' + x[1] + (el > 0 ? ' · El ' + f(el, 0) + '°' : ' · ' + t('تحت الأفق', 'below horizon')));
+      }).join('') + '</optgroup>';
+    }).join('') + opt('c', st.sat, t('موقع مخصّص', 'Custom position'));
   }
 
   var used = false;
@@ -140,9 +153,9 @@
     else st[k] = v === '' ? 0 : +v;
     if (k === 'sr') st.last = 'sr';
     if (k === 'br') st.last = 'br';
-    if (k === 'sat') { var s = SATS.filter(function (x) { return x[0] === v; })[0]; if (s && s[0] !== 'c') st.slon = s[2]; }
-    if (k === 'slon') st.sat = 'c';
-    if (k === 'std' || k === 'mod' || k === 'sat' || k === 'slon') fill();
+    if (k === 'sat' && v !== 'c') st.slon = +v;
+    if (k === 'slon') st.sat = SATS_ALL.indexOf(st.slon) >= 0 ? String(st.slon) : 'c';
+    if (k === 'std' || k === 'mod' || k === 'sat' || k === 'slon' || k === 'lat' || k === 'lon') fill();
     calc(k);
     if (!used) { used = true; if (typeof track === 'function') track('satcalc_used', { field: k }); }
   });
