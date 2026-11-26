@@ -1,0 +1,23 @@
+{
+  "mega_url": "",
+  "downloads": [
+    {
+      "title_ar": "دليل حساب نظام الطاقة الشمسية (PDF)",
+      "title_en": "Home solar sizing guide (PDF)",
+      "desc_ar": "كم لوح وكم بطارية بيحتاج بيتك، خطوة بخطوة مع مثال بالأرقام.",
+      "desc_en": "How many panels and batteries your home needs, step by step with a worked example.",
+      "file_ar": "/files/solar-sizing-guide-ar.pdf",
+      "file_en": "/files/solar-sizing-guide-en.pdf",
+      "url": ""
+    },
+    {
+      "title_ar": "دليل توجيه صحن الستلايت (PDF)",
+      "title_en": "Satellite dish pointing guide (PDF)",
+      "desc_ar": "Elevation وAzimuth وLNB skew، مع أرقام نايل سات وهوت بيرد وعرب سات من بيروت.",
+      "desc_en": "Elevation, azimuth and LNB skew, with Nilesat, Hot Bird and Arabsat figures from Beirut.",
+      "file_ar": "/files/dish-pointing-guide-ar.pdf",
+      "file_en": "/files/dish-pointing-guide-en.pdf",
+      "url": ""
+    }
+  ]
+}

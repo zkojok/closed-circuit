@@ -1,0 +1,28 @@
+# Pages CMS (https://pagescms.org): sign in with GitHub, open this repository,
+# and edit the items below from the browser or phone. Saving commits to main,
+# and GitHub Pages publishes the change in about a minute.
+media:
+  input: files
+  output: /files
+content:
+  - name: support
+    label: "Support page: downloads & client uploads"
+    type: file
+    path: content/support.json
+    format: json
+    fields:
+      - name: mega_url
+        label: "MEGA file request link (leave empty to hide the upload box)"
+        type: string
+      - name: downloads
+        label: Downloads
+        type: object
+        list: true
+        fields:
+          - { name: title_ar, label: "Title (Arabic)", type: string, required: true }
+          - { name: title_en, label: "Title (English)", type: string }
+          - { name: desc_ar, label: "Description (Arabic)", type: text }
+          - { name: desc_en, label: "Description (English)", type: text }
+          - { name: file_ar, label: "File (Arabic page)", type: file }
+          - { name: file_en, label: "File (English page, optional)", type: file }
+          - { name: url, label: "Or an external link", type: string }

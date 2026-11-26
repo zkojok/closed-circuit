@@ -553,3 +553,38 @@ html[lang=en] .art-formula{direction:ltr}
 .mcr-fig{margin-top:16px}.mcr-fig a{display:block;border-radius:16px;overflow:hidden;border:1px solid var(--line)}
 .mcr-fig img{width:100%;height:auto;display:block;transition:transform .4s}.mcr-fig a:hover img{transform:scale(1.02)}
 .mcr-fig figcaption{color:var(--muted);font-size:.9rem;margin-top:10px;line-height:1.7}
+/* engineering calculators page */
+#eng-calcs{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;display:grid;gap:16px}
+.cx-tabs{display:flex;flex-wrap:wrap;gap:8px}
+.cx-tabs button{display:flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:8px 14px;font:inherit;font-size:.9rem;font-weight:600;cursor:pointer}
+.cx-tabs button[aria-selected=true]{color:#04131A;background:var(--grad);border-color:transparent}
+.cx-lead{color:var(--muted);margin:0}
+.cx-unit{display:flex;align-items:center;gap:6px}.cx-unit input{flex:1;min-width:0}.cx-unit i{font-style:normal;color:var(--muted);font-size:.8rem;white-space:nowrap}
+.sc-in label[hidden]{display:none}
+.cx-chart{width:100%;max-width:520px;height:auto;display:block;margin:0 auto;direction:ltr}
+.cx-zero{stroke:var(--line);stroke-width:1}.cx-ax{fill:var(--muted);font-size:9px;text-anchor:middle}
+.cx-cap{color:var(--muted);font-size:.85rem;text-align:center;margin:0}
+.cx-table{overflow-x:auto}.cx-table table{width:100%;border-collapse:collapse;font-size:.88rem;min-width:420px;direction:ltr}
+.cx-table th,.cx-table td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left}.cx-table th{color:var(--cyan)}
+#eng-calcs .btn{justify-self:stretch;text-align:center}
+@media (max-width:600px){#eng-calcs{padding:14px}.cx-tabs button{font-size:.82rem;padding:7px 11px}}
+/* print: articles and pages print on white */
+@media print{
+  body:not(.pr-on){background:#fff!important;color:#111}
+  body:not(.pr-on) .site-header,body:not(.pr-on) footer,body:not(.pr-on) .wa-float,body:not(.pr-on) .cta-band,body:not(.pr-on) .art-back,body:not(.pr-on) .grid-bg{display:none!important}
+  body:not(.pr-on) .hero{background:none!important;padding:0 0 10px}
+  body:not(.pr-on) h1,body:not(.pr-on) h2,body:not(.pr-on) .article p b{color:#111!important}
+  body:not(.pr-on) .grad-text{background:none!important;-webkit-text-fill-color:#0E6E7E!important;color:#0E6E7E!important}
+  body:not(.pr-on) .lead,body:not(.pr-on) .article p,body:not(.pr-on) .art-list,body:not(.pr-on) .art-table td{color:#333!important}
+  body:not(.pr-on) .art-tip,body:not(.pr-on) .art-formula{background:#f2f7f8!important;color:#0E6E7E}
+  body:not(.pr-on) .art-table th{color:#0E6E7E}
+  body:not(.pr-on) .eyebrow{color:#0E6E7E;border-color:#0E6E7E;background:none}
+}
+/* support: downloads & file upload */
+.dl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.dl-item{display:flex;gap:14px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;transition:border-color .2s}
+.dl-item:hover{border-color:var(--cyan)}
+.dl-ico{flex:0 0 42px;height:42px;border-radius:10px;display:grid;place-items:center;background:rgba(34,211,238,.1);color:var(--cyan);font-weight:800;font-size:.72rem}
+.dl-item b{display:block}.dl-item small{color:var(--muted);display:block;line-height:1.6;margin-top:2px}
+.up-box{margin-top:22px;display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;background:var(--card);border:1px dashed rgba(34,211,238,.45);border-radius:14px;padding:20px}
+.up-box h3{font-size:1.15rem;margin-bottom:4px}.up-box p{color:var(--muted);margin:0;font-size:.92rem;line-height:1.7}
