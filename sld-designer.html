@@ -1,0 +1,787 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Free Single Line Diagram Designer (SLD) | Closed Circuit</title>
+<meta name="description" content="Free online single line diagram tool for Lebanon: grid, generator subscription, ATS, hybrid solar inverter. Sizes cables, breakers, voltage drop and fault current, and prints A3.">
+<meta property="og:title" content="Free Single Line Diagram Designer | Closed Circuit">
+<meta property="og:description" content="Draw and print an electrical single line diagram with cable and breaker sizing, in minutes.">
+<meta property="og:image" content="https://closedcircuiteng.com/img/og-cover.png">
+<link rel="canonical" href="https://closedcircuiteng.com/sld-designer.html">
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-QH2MG1VK44"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-QH2MG1VK44');</script>
+<style>
+:root{--bg:#EEF1F5;--panel:#fff;--line:#D5DBE3;--text:#0F172A;--muted:#64748B;--acc:#0E9F8E;--bad:#DC2626;--warn:#D97706}
+*{box-sizing:border-box}
+body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+header{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 16px;background:#0F172A;color:#fff;position:sticky;top:0;z-index:5}
+header h1{font-size:16px;margin:0 12px 0 0}
+header button,.ed button{font:inherit;border:1px solid var(--line);background:#fff;color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer}
+header button.pri{background:var(--acc);color:#fff;border-color:var(--acc);font-weight:700}
+main{display:grid;grid-template-columns:minmax(0,620px) minmax(0,1fr);gap:0;height:calc(100vh - 52px)}
+.ed{overflow:auto;padding:12px 14px;background:var(--panel);border-right:1px solid var(--line)}
+.out{overflow:auto;padding:16px}
+details{border:1px solid var(--line);border-radius:8px;margin-bottom:10px;background:#fff}
+summary{cursor:pointer;padding:9px 12px;font-weight:700;background:#F8FAFC;border-radius:8px}
+.box{padding:10px 12px}
+.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px 10px}
+label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted)}
+label.chk{flex-direction:row;align-items:center;gap:6px;color:var(--text);font-size:13px}
+input,select{font:inherit;font-size:13px;padding:5px 6px;border:1px solid var(--line);border-radius:5px;color:var(--text);background:#fff;width:100%}
+input[type=checkbox]{width:auto}
+table.ct{width:100%;border-collapse:collapse;margin-top:8px;font-size:12px}
+table.ct th{text-align:left;color:var(--muted);font-weight:600;padding:3px 2px}
+table.ct td{padding:2px}
+table.ct input,table.ct select{padding:4px;font-size:12px}
+.rm{color:var(--bad)!important;border-color:transparent!important;background:none!important;padding:2px 6px!important}
+.sub{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.hint{color:var(--muted);font-size:12px;margin:6px 0 0}
+#warn{background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin-bottom:14px}
+#warn h3{margin:0 0 6px;font-size:14px}
+#warn li{margin:2px 0}
+#warn .e{color:var(--bad)}#warn .w{color:var(--warn)}#warn .ok{color:var(--acc)}#warn .i{color:var(--muted)}
+.sheet{background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.12);margin:0 auto 18px;max-width:1400px}
+.sheet svg{display:block;width:100%;height:auto}
+@media (max-width:1000px){main{grid-template-columns:minmax(0,1fr);height:auto}.ed{border-right:0}}
+@media print{
+  @page{size:A3 landscape;margin:0}
+  header,.ed,#warn{display:none!important}
+  body{background:#fff}
+  main{display:block;height:auto}
+  .out{padding:0;overflow:visible}
+  .sheet{box-shadow:none;margin:0;max-width:none;page-break-after:always;break-after:page}
+  .sheet svg{width:420mm;height:296mm}
+}
+#pro{position:fixed;inset:0;background:rgba(15,23,42,.6);display:flex;align-items:center;justify-content:center;z-index:20;padding:16px}
+#pro[hidden]{display:none}
+.pro-box{background:#fff;border-radius:14px;max-width:440px;width:100%;padding:22px 24px;position:relative;display:grid;gap:10px;max-height:92vh;overflow:auto}
+.pro-box h2{margin:0;font-size:22px}.pro-box ul{margin:0;padding-inline-start:20px;line-height:1.7}.pro-box p{margin:0}
+.pro-box .why{color:var(--warn);font-weight:600}.pro-box .x{position:absolute;top:10px;right:12px;border:0;background:none;font-size:18px;cursor:pointer}
+.pro-box button.pri{background:var(--acc);color:#fff;border:0;border-radius:8px;padding:10px;font:inherit;font-weight:700;cursor:pointer}
+.pro-box .st{color:var(--acc);font-weight:600}
+header a{text-decoration:none}
+@media print{#pro{display:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <h1>⚡ SLD Designer</h1>
+  <button id="b-new">New</button>
+  <button id="b-req" class="pri">Import client request</button>
+  <button id="b-sample">Sample villa</button>
+  <button id="b-save">Save project</button>
+  <button id="b-open">Open project</button>
+  <input type="file" id="f-open" accept=".json" hidden>
+  <span style="flex:1"></span>
+  <button class="pri" id="b-print">Print / PDF (A3)</button>
+</header>
+<main>
+  <div class="ed" id="ed"></div>
+  <div class="out"><div id="warn"></div><div id="sheets"></div></div>
+</main>
+<script>
+'use strict';
+const FREE=true; // build_free.py flips this for the public page
+const LS=FREE?'cc-sld-free':'cc-sld', MAXB=3;
+const track=(n,p)=>{try{if(window.gtag)gtag('event',n,p||{})}catch(e){}};
+/* ================= Engineering data (IEC 60364-5-52, simplified) ================= */
+const SIZES=[1.5,2.5,4,6,10,16,25,35,50,70,95,120,150,185,240];
+const IZ={ // Cu, [2 loaded conductors, 3 loaded conductors]
+  B:{n:'B — conduit/trunking on wall (PVC)',ins:'pvc',2:[17.5,24,32,41,57,76,101,125,151,192,232,269,309,353,415],3:[15.5,21,28,36,50,68,89,110,134,171,207,239,275,314,370]},
+  E:{n:'E — cable tray / free air (XLPE)',ins:'xlpe',2:[26,36,49,63,86,115,149,185,225,289,352,410,473,542,641],3:[23,32,42,54,75,100,127,158,192,246,298,346,399,456,538]},
+  D:{n:'D — buried in duct (PVC)',ins:'pvc',2:[22,29,38,47,63,81,104,125,148,183,216,246,278,312,361],3:[18,24,31,39,52,67,86,103,122,151,179,203,230,258,297]}
+};
+const AMB={pvc:{30:1,35:.94,40:.87,45:.79,50:.71},xlpe:{30:1,35:.96,40:.91,45:.87,50:.82}};
+const RATINGS=[6,10,16,20,25,32,40,50,63,80,100,125,160,200,250,320,400,500,630];
+const ICU=[6,10,15,25,36,50,70];
+const DC_FUSE=[63,80,100,125,160,200,250,315,355,400,500,630];
+const DC_CAB=[[16,100],[25,130],[35,160],[50,200],[70,250],[95,300],[120,350],[150,400],[185,450],[240,530]];
+const RHO20={cu:.0185,al:.0294}, RHOH={cu:.0225,al:.036}, LAMBDA=.00008;
+const MAG={B:5,C:10,D:20};
+const TYPES={
+  light:{n:'Lighting',ab:'L',pf:.9,curve:'B',minS:1.5,minIn:10,vd:'L',rcd:false},
+  sock:{n:'Sockets',ab:'S',pf:.9,curve:'C',minS:2.5,minIn:16,rcd:true},
+  ac:{n:'Air conditioner',ab:'AC',pf:.85,curve:'C',minS:2.5,minIn:16,rcd:false},
+  heat:{n:'Water heater',ab:'WH',pf:1,curve:'C',minS:2.5,minIn:16,rcd:true},
+  cook:{n:'Oven / cooker',ab:'OV',pf:1,curve:'C',minS:4,minIn:20,rcd:true},
+  wash:{n:'Washer / dryer',ab:'WM',pf:.9,curve:'C',minS:2.5,minIn:16,rcd:true,rcdT:'A'},
+  motor:{n:'Motor / pump',ab:'M',pf:.8,curve:'D',minS:2.5,minIn:10,rcd:false},
+  ev:{n:'EV charger',ab:'EV',pf:.99,curve:'C',minS:6,minIn:32,rcd:true,rcdT:'A'},
+  other:{n:'Other',ab:'X',pf:.9,curve:'C',minS:1.5,minIn:10,rcd:false}
+};
+const SQ3=Math.sqrt(3);
+
+/* ================= helpers ================= */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const f1=x=>(Math.round(x*10)/10).toLocaleString('en');
+const f2=x=>(Math.round(x*100)/100).toLocaleString('en');
+const f0=x=>Math.round(x).toLocaleString('en');
+const uid=()=>Math.random().toString(36).slice(2,8);
+const rating=(I,min=0)=>RATINGS.find(r=>r>=I&&r>=min)||RATINGS[RATINGS.length-1];
+const icuFor=Ik=>ICU.find(v=>v*1000>=Ik)||ICU[ICU.length-1];
+function vdPct(I,L,S,mat,pf,ph){const sin=Math.sqrt(Math.max(0,1-pf*pf));const du=(ph===3?SQ3:2)*I*(RHOH[mat]*L/S*pf+LAMBDA*L*sin);return du/(ph===3?400:230)*100}
+function cableName(S,ph,mat){
+  const m=mat==='al'?'Al':'Cu';
+  if(S<=16) return (ph===3?'5G':'3G')+S+' '+m;
+  const pe=S<=35?16:S/2;
+  return (ph===3?'4×':'2×')+S+'+G'+pe+' '+m;
+}
+function pickCable(o){ // o: Ib, In, method, mat, ph, len, pf, vdMax, minS, amb, grp
+  const tab=IZ[o.method][o.ph===3?3:2];
+  const k=(o.method==='D'?.95:(AMB[IZ[o.method].ins][o.amb]||1))*(o.grp||1);
+  let last=null;
+  for(let i=0;i<SIZES.length;i++){
+    const S=SIZES[i];
+    if(o.mat==='al'&&S<16) continue;
+    if(S<o.minS) continue;
+    const iz=tab[i]*(o.mat==='al'?.78:1)*k;
+    const vd=vdPct(o.Ib,o.len,S,o.mat,o.pf,o.ph);
+    last={S,iz,vd,ok:iz>=o.In&&vd<=o.vdMax,izOk:iz>=o.In};
+    if(iz<o.In) continue;
+    if(vd>o.vdMax) continue;
+    return last;
+  }
+  return last;
+}
+
+/* ================= state ================= */
+function cc(name,type,kw,len,extra){return Object.assign({id:uid(),name,type,kw,len,ph:'auto',method:'B',mat:'cu',rcd:TYPES[type].rcd},extra||{})}
+function blank(){return{
+  project:{client:'',title:'',address:'',engineer:'Closed Circuit Engineering',dwg:'CC-SLD-001',rev:'A',date:new Date().toISOString().slice(0,10)},
+  grid:{on:true,ph:1,src:'net',ik:6,kva:400,uk:4,sub:20,len:10,method:'B',mat:'cu'},
+  gen:{on:false,ph:1,kind:'sub',kva:20,amp:10,ik:1,len:20,method:'B',mat:'cu'},
+  inv:{on:false,ph:1,kw:6,mode:'backup',acLen:3,bv:48,bkwh:10.24,bLen:2,pv:4.64,strings:1,pvLen:15},
+  set:{amb:35,grp:1,vdL:3,vdO:5,vdF:1.5,earth:'TT'},
+  boards:[{id:'mdb',name:'MDB',parent:'main',ph:1,len:3,method:'B',mat:'cu',ks:.8,circuits:[cc('Lighting','light',.5,20),cc('Sockets','sock',2,20)]}]
+}}
+function sample(){const S=blank();Object.assign(S.project,{client:'Sample client',title:'Villa — low-voltage installation',address:'Mount Lebanon'});
+  S.grid=Object.assign(S.grid,{ph:3,sub:63,len:15});
+  S.gen=Object.assign(S.gen,{on:true,ph:3,kind:'own',kva:40,len:20,method:'D'});
+  S.inv=Object.assign(S.inv,{on:true,ph:1,kw:8,mode:'backup',bkwh:15.36,pv:6.96,strings:2,pvLen:15});
+  S.boards=[
+    {id:'mdb',name:'MDB',parent:'main',ph:3,len:5,method:'B',mat:'cu',ks:.8,circuits:[
+      cc('Water heater','heat',3,12),cc('AC living room','ac',2.2,18),cc('AC master bedroom','ac',1.5,22),
+      cc('Oven','cook',3,10),cc('Washing machine','wash',2,12),cc('Water pump','motor',1.1,25)]},
+    {id:'bdb',name:'Backup DB',parent:'backup',ph:1,len:4,method:'B',mat:'cu',ks:.7,circuits:[
+      cc('Lighting ground floor','light',.6,25),cc('Lighting first floor','light',.5,30),cc('Sockets living','sock',2,20),
+      cc('Sockets bedrooms','sock',1.5,30),cc('Kitchen sockets','sock',2.5,15),cc('Fridge','sock',.3,12),cc('Router & CCTV','other',.15,10)]},
+    {id:'sdb1',name:'SDB Roof',parent:'mdb',ph:3,len:25,method:'B',mat:'cu',ks:.8,circuits:[
+      cc('AC roof (3-phase)','ac',4,8,{ph:'3P'}),cc('Roof sockets','sock',1,15),cc('Roof lighting','light',.2,20)]}
+  ];return S}
+/* ================= client request → project ================= */
+function decodeReq(txt){
+  txt=String(txt||'').trim();
+  const m=txt.match(/CC1-([A-Za-z0-9+/=]+)/);
+  if(m) return JSON.parse(decodeURIComponent(escape(atob(m[1]))));
+  return JSON.parse(txt);
+}
+function fromRequest(q){
+  const P=blank();const rd=x=>Math.round(x*100)/100;
+  const floors=Math.max(1,Math.min(4,+q.f||1));
+  const FL=['GF','1F','2F','3F'];
+  const solar=q.st==='have'||q.st==='want';
+  const ess=new Set(q.es||[]), ap=new Set(q.ap||[]);
+  const list=[]; // {fl, ess, c}
+  const put=(fl,isEss,c)=>list.push({fl,ess:solar&&isEss,c});
+  const sfx=fl=>floors>1?' '+FL[fl]:'';
+  // distribute rooms over floors
+  const spread=(n,from)=>{const a=Array(floors).fill(0);for(let i=0;i<n;i++)a[(from+i)%floors]++;return a};
+  const bd=floors>1?spread(+q.bd||0,1):[+q.bd||0], ba=spread(+q.ba||0,0);
+  for(let fl=0;fl<floors;fl++){
+    const living=fl===0?(+q.lv||0):0, kit=fl===0?(+q.kt||0):0;
+    const rooms=bd[fl]+ba[fl]+living+kit;
+    const nl=Math.max(1,Math.ceil(rooms/5));
+    for(let i=0;i<nl;i++){const r=Math.ceil(rooms/nl);put(fl,ess.has('light'),cc('Lighting'+sfx(fl)+(nl>1?' '+(i+1):''),'light',rd(.05+.05*r),15+3*r))}
+    for(let i=0;i<Math.ceil(bd[fl]/2);i++) put(fl,ess.has('sock'),cc('Sockets bedrooms'+sfx(fl)+(bd[fl]>2?' '+(i+1):''),'sock',1.5,22));
+    for(let i=0;i<living;i++) put(fl,ess.has('sock'),cc('Sockets living'+(living>1?' '+(i+1):''),'sock',1.5,18));
+    for(let i=0;i<kit;i++){put(fl,false,cc('Kitchen sockets'+(kit>1?' K'+(i+1):'')+' A','sock',2,12));put(fl,false,cc('Kitchen sockets'+(kit>1?' K'+(i+1):'')+' B','sock',2,12))}
+    if(ba[fl]) put(fl,false,cc('Bathroom sockets'+sfx(fl),'sock',1,15,{rcd:true}));
+  }
+  if(+q.rf){const top=floors-1;put(top,ess.has('light'),cc('Roof lighting','light',.2,20));put(top,false,cc('Roof sockets','sock',1,20))}
+  if(+q.gr) put(0,ess.has('light'),cc('Outdoor lighting','light',.3,30));
+  // ACs: large first in living (GF), then bedrooms floors
+  let acN=0, acFl=floors>1?1:0, essAc=ess.has('ac');
+  const addAc=(kw)=>{acN++;const fl=acN===1?0:acFl;put(fl,essAc,cc('AC '+acN+sfx(fl),'ac',kw,15+4*acN));essAc=false;if(acN>1&&floors>1)acFl=1+((acFl)%(floors-1))};
+  for(let i=0;i<(+q.a2||0);i++) addAc(2.4);
+  for(let i=0;i<(+q.a1||0);i++) addAc(1.2);
+  for(let i=0;i<(+q.wh||0);i++){const fl=floors>1?(i+1)%floors:0;put(fl,false,cc('Water heater'+((+q.wh)>1?' '+(i+1):'')+sfx(fl),'heat',2.5,12))}
+  if(ap.has('ov')) put(0,false,cc('Oven','cook',3,10));
+  if(ap.has('wm')) put(0,false,cc('Washing machine','wash',2,12));
+  if(ap.has('dr')) put(0,false,cc('Dryer','wash',2.5,12));
+  if(ap.has('dw')) put(0,false,cc('Dishwasher','wash',2,10));
+  if(+q.pu) put(0,ess.has('pump'),cc('Water pump','motor',rd(q.pu*.75),25));
+  if(solar){put(0,true,cc('Fridge','sock',.3,12));if(ess.has('net'))put(0,true,cc('Router & CCTV','other',.15,10))}
+  const totalKw=list.reduce((s,x)=>s+(+x.c.kw),0);
+  // sources
+  const gph=+q.gp===3?3:+q.gp===1?1:(totalKw*.6>9?3:1);
+  P.grid=Object.assign(P.grid,{on:true,ph:gph,sub:+q.ga||(gph===3?32:20),len:+q.d||10});
+  if(q.gt==='sub') P.gen=Object.assign(P.gen,{on:true,kind:'sub',ph:1,amp:+q.gs||10,ik:1,len:15});
+  else if(q.gt==='own') P.gen=Object.assign(P.gen,{on:true,kind:'own',ph:gph,kva:+q.gk||(gph===3?20:10),len:20,method:'D'});
+  else P.gen.on=false;
+  if(ap.has('ev')) put(0,false,cc('EV charger','ev',gph===3?11:7.4,20,gph===3?{ph:'3P'}:{}));
+  if(solar){
+    const essKw=list.filter(x=>x.ess).reduce((s,x)=>s+(+x.c.kw),0);
+    const kw=+q.ik||[3,5,6,8,10,12,15].find(k=>k>=essKw*.6)||15;
+    P.inv=Object.assign(P.inv,{on:true,mode:'backup',ph:kw>12&&gph===3?3:1,kw,bkwh:+q.bk||(kw<=5?10.24:15.36),pv:rd(Math.max(kw*.9,3)),strings:kw>5?2:1,pvLen:15,acLen:3});
+  }else P.inv.on=false;
+  // boards
+  const fl0=list.filter(x=>!x.ess&&x.fl===0).map(x=>x.c);
+  P.boards=[{id:'mdb',name:'MDB',parent:'main',ph:gph,len:3,method:'B',mat:'cu',ks:.7,circuits:fl0}];
+  for(let fl=1;fl<floors;fl++){
+    const cs=list.filter(x=>!x.ess&&x.fl===fl).map(x=>x.c);
+    if(!cs.length) continue;
+    const kw=cs.reduce((s,c)=>s+(+c.kw),0);
+    P.boards.push({id:'sdb'+fl,name:'SDB '+FL[fl],parent:'mdb',ph:gph===3&&kw*.7>7?3:1,len:6+5*fl,method:'B',mat:'cu',ks:.7,circuits:cs});
+  }
+  if(solar){
+    const cs=list.filter(x=>x.ess).map(x=>x.c);
+    if(cs.length) P.boards.push({id:'bdb',name:'Backup DB',parent:'backup',ph:P.inv.ph,len:4,method:'B',mat:'cu',ks:.7,circuits:cs});
+  }
+  const type={apt:'Apartment',house:'House',villa:'Villa'}[q.t]||'House';
+  P.project=Object.assign(P.project,{client:q.n||'',title:type+' — electrical installation',address:q.a||''});
+  P.req=q;
+  return P;
+}
+let S;
+try{S=JSON.parse(localStorage.getItem(LS))}catch(e){}
+if(!S||!S.boards) S=sample();
+
+/* ================= calculation ================= */
+function compute(){
+  const W=[], st=S.set, R={}, WEAK=[];
+  const add=(lvl,msg)=>W.push({lvl,msg});
+  const inv=S.inv, grid=S.grid, gen=S.gen;
+  if(!grid.on&&!gen.on&&!inv.on) add('e','No supply source is enabled.');
+  const backupMode=inv.on&&inv.mode==='backup';
+  const wholeMode=inv.on&&inv.mode==='whole';
+  const srcPh=grid.on?grid.ph:(gen.on?gen.ph:inv.ph);
+  if(grid.on&&gen.on&&grid.ph!==gen.ph) add('w','Grid and generator have different phase counts: the ATS must match them.');
+  const mainPh=wholeMode?inv.ph:srcPh;
+  const backupPh=inv.ph;
+  const byId={};S.boards.forEach(b=>byId[b.id]=b);
+  // resolve parents + cycles
+  S.boards.forEach(b=>{
+    b._isRoot=false;b._root=null;
+    let p=b.parent;
+    if(p==='backup'&&!backupMode){p='main';}
+    if(p!=='main'&&p!=='backup'&&!byId[p]) p='main';
+    let q=p,guard=0;while(byId[q]&&guard++<50){if(q===b.id){p='main';break}q=byId[q].parent}
+    b._p=p;
+  });
+  const kids=k=>S.boards.filter(b=>b._p===k);
+  // pass 1: loads, bottom-up
+  function load(b,ph,seen){
+    seen=seen||{};if(seen[b.id])return{I:[0,0,0],kw:0};seen[b.id]=1;
+    b._ph=Math.min(b.ph,ph);
+    const rows=[];
+    b.circuits.forEach(c=>{
+      const t=TYPES[c.type]||TYPES.other, cph=(b._ph===3&&c.ph==='3P')?3:1, kw=+c.kw||0;
+      const Ib=cph===3?kw*1000/(SQ3*400*t.pf):kw*1000/(230*t.pf);
+      rows.push({kind:'c',c,t,pf:t.pf,ph:cph,Ib,kw,fix:c.ph,name:c.name||t.n,len:+c.len||1,method:c.method,mat:c.mat,rcd:!!c.rcd,curve:t.curve,minS:t.minS,minIn:t.minIn,vdLim:t.vd==='L'?st.vdL:st.vdO});
+    });
+    kids(b.id).forEach(k=>{
+      const L=load(k,b._ph,seen);
+      const Ib=(k._ph===3?Math.max(...L.I):L.I[0]+L.I[1]+L.I[2])*k.ks;
+      rows.push({kind:'b',board:k,ph:k._ph,Ib,kw:L.kw*k.ks,fix:'auto',name:'→ '+k.name,len:+k.len||1,method:k.method,mat:k.mat,rcd:false,curve:'C',minS:2.5,minIn:k._feedMin,pf:.9,vdLim:st.vdF,t:{ab:'DB'}});
+    });
+    const I=[0,0,0];
+    rows.forEach(r=>{if(r.ph===3){r.phase='L1-L2-L3';I[0]+=r.Ib;I[1]+=r.Ib;I[2]+=r.Ib}});
+    rows.filter(r=>r.ph===1&&b._ph===3&&/^L[123]$/.test(r.fix)).forEach(r=>{const i=+r.fix[1]-1;I[i]+=r.Ib;r.phase=r.fix});
+    rows.filter(r=>r.ph===1&&!r.phase).sort((a,z)=>z.Ib-a.Ib).forEach(r=>{
+      if(b._ph!==3){I[0]+=r.Ib;r.phase='L-N';return}
+      const i=I.indexOf(Math.min(...I));I[i]+=r.Ib;r.phase='L'+(i+1);
+    });
+    b._feedMin=rating(Math.max(10,...rows.map(r=>r.kind==='c'?rating(r.Ib,r.minIn):r.minIn))+.1);
+    b._rows=rows;b._I=I;b._kw=rows.reduce((s,r)=>s+r.kw,0);
+    return{I,kw:b._kw};
+  }
+  const roots=k=>kids(k).map(b=>{const L=load(b,k==='backup'?backupPh:mainPh);return{b,L}});
+  const mainRoots=roots('main'), backRoots=backupMode?roots('backup'):[];
+  const demand=list=>{const I=[0,0,0];list.forEach(({b})=>{const k=b.ks;if(b._ph===3)b._I.forEach((x,i)=>I[i]+=x*k);else I[0]+=(b._I[0]+b._I[1]+b._I[2])*k});return I};
+
+  // generic line sizing
+  function line(o,node){ // o: Ib, ph, len, method, mat, pf, minS, minIn, curve, vdLim, rcd
+    const In=rating(o.Ib*(o.k||1),o.minIn);
+    const fd=o.kind==='b'||o.feeder, vdMax=Math.max(o.vdLim-node.vd,fd?.5:.3);
+    const cab=pickCable({Ib:o.Ib,In,method:o.method||'B',mat:o.mat||'cu',ph:o.ph,len:o.len,pf:o.pf||.9,vdMax,minS:o.minS||1.5,amb:st.amb,grp:st.grp});
+    const S_=cab.S, R20=RHO20[o.mat||'cu']*o.len/S_, Rh=RHOH[o.mat||'cu']*o.len/S_;
+    const ikMax=230/node.zS, ikMinEnd=.95*230/(node.zN+2*Rh), ikWeak=.95*230/(node.zW+2*Rh);
+    const dev=In<=63?(o.rcd&&In<=40?'RCBO':'MCB'):'MCCB';
+    const Im=dev==='MCCB'?10*In:MAG[o.curve||'C']*In;
+    const r={ikWeak,In,dev,curve:dev==='MCCB'?'':(o.curve||'C'),poles:o.ph===3?'4P':'2P',icu:icuFor(ikMax),cab,S:S_,cable:cableName(S_,o.ph,o.mat||'cu'),vdC:cab.vd,vdT:node.vd+cab.vd,ikMax,ikMinEnd,Im,notes:[]};
+    if(!cab.izOk) r.notes.push({lvl:'e',m:'No single cable up to 240 mm² carries '+In+' A: use parallel cables.'});
+    else if(!fd&&r.vdT>o.vdLim+.01) r.notes.push({lvl:'w',m:'Total voltage drop '+f2(r.vdT)+'% is above the '+o.vdLim+'% limit: shorten the run or reduce upstream drop.'});
+    if(ikMinEnd<Im) r.notes.push({lvl:'w',m:'Min. fault current '+f0(ikMinEnd)+' A < magnetic trip '+f0(Im)+' A: use curve B, a bigger cable or a shorter run.'});
+    if(ikWeak<Im) WEAK.push(node.weak);
+    r.next={zS:node.zS+R20,zW:node.zW+2*Rh,zN:node.zN+2*Rh,vd:r.vdT,weak:node.weak};
+    return r;
+  }
+  // board sizing top-down
+  function sizeBoard(b,node,feedRow){
+    b._node=node;b._feed=b._isRoot?null:feedRow;
+    b._rows.forEach(r=>{
+      r.res=line({kind:r.kind,Ib:r.Ib,ph:r.ph,len:r.len,method:r.method,mat:r.mat,pf:r.pf,minS:r.minS,minIn:r.minIn,curve:r.curve,vdLim:r.vdLim,rcd:r.rcd},node);
+      if(r.kind==='b') sizeBoard(r.board,r.res.next,r);
+    });
+    if(b._ph===3){const mx=Math.max(...b._I),mn=Math.min(...b._I);if(mx>5&&(mx-mn)/mx>.3) add('w',b.name+': phases are unbalanced (L1 '+f0(b._I[0])+' A, L2 '+f0(b._I[1])+' A, L3 '+f0(b._I[2])+' A).')}
+    b._rows.forEach((r,i)=>r.res.notes.forEach(n=>add(n.lvl,b.name+' Q'+(i+1)+' ('+r.name.replace('→ ','')+'): '+n.m)));
+  }
+
+  // sources
+  const iMain=demand(mainRoots);
+  if(backupMode){const ch=Math.min(inv.kw,inv.bkwh*.1)*1000/(inv.ph===3?SQ3*400:230), ib=demand(backRoots);const add2=inv.ph===3?[0,1,2]:(mainPh===3?[iMain.indexOf(Math.min(...iMain))]:[0]);add2.forEach(i=>iMain[i]+=(inv.ph===3?Math.max(...ib):ib[0])+ch)}
+  const iBack=demand(backRoots);
+  const Imain=Math.max(...iMain);
+  let zGs=Infinity,zGw=0,zNs=Infinity,zNw=0,vdSrc=0;
+  if(grid.on){
+    const zG=grid.src==='tx'?(grid.uk/100)*160000/(grid.kva*1000):230/(grid.ik*1000);
+    const In=grid.src==='tx'?rating(grid.kva*1000/(SQ3*400)):grid.sub;
+    const ph=grid.ph;
+    const cab=pickCable({Ib:Math.min(In,Imain||In),In,method:grid.method,mat:grid.mat,ph,len:grid.len,pf:.9,vdMax:1,minS:ph===3?6:6,amb:st.amb,grp:1});
+    R.grid={zG,In,cab,cable:cableName(cab.S,ph,grid.mat),poles:ph===3?'4P':'2P',ik:230/zG,icu:icuFor(230/zG)};
+    zNs=zG+RHO20[grid.mat]*grid.len/cab.S; zNw=zG+2*RHOH[grid.mat]*grid.len/cab.S; vdSrc=Math.max(vdSrc,cab.vd);
+  }
+  if(gen.on){
+    let In,zs,zw;
+    if(gen.kind==='own'){const Ig=gen.kva*1000/(gen.ph===3?SQ3*400:230);In=rating(Ig);zs=230/(Ig/.15);zw=230/(3*Ig);R.genI=Ig}
+    else{In=gen.amp;zs=zw=230/(gen.ik*1000);R.genI=gen.amp}
+    const cab=pickCable({Ib:Math.min(R.genI,Imain||R.genI),In,method:gen.method,mat:gen.mat,ph:gen.ph,len:gen.len,pf:.9,vdMax:1.5,minS:4,amb:st.amb,grp:1});
+    R.gen={In,cab,cable:cableName(cab.S,gen.ph,gen.mat),poles:gen.ph===3?'4P':'2P',ik:230/zs,icu:icuFor(230/zs)};
+    zGs=zs+RHO20[gen.mat]*gen.len/cab.S; zGw=zw+2*RHOH[gen.mat]*gen.len/cab.S; vdSrc=Math.max(vdSrc,cab.vd);
+  }
+  const sources=(grid.on?1:0)+(gen.on?1:0);
+  const mainNode={zS:Math.min(zNs,zGs),zW:Math.max(grid.on?zNw:0,gen.on?zGw:0),zN:grid.on?zNw:zGw,vd:vdSrc,weak:gen.on?'generator':'grid'};
+  if(!isFinite(mainNode.zS)){mainNode.zS=mainNode.zW=mainNode.zN=1}
+  if(sources===2){R.ats={In:rating(Math.max(grid.sub||0,R.gen.In)),poles:srcPh===3?'4P':'2P'}}
+  if(grid.on&&R.grid&&Imain>R.grid.In) add('w','Main demand '+f0(Imain)+' A is above the grid supply breaker '+R.grid.In+' A.');
+  if(gen.on&&R.genI&&Imain>R.genI) add('w','Main demand '+f0(Imain)+' A is above the generator capacity ('+f0(R.genI)+' A): load shedding needed on generator.');
+
+  // inverter
+  let backNode=null, mainBus=mainNode;
+  if(inv.on){
+    const Ii=inv.kw*1000/(inv.ph===3?SQ3*400:230);
+    const acIn=line({Ib:Ii*1.2,ph:inv.ph,len:inv.acLen,method:'B',mat:'cu',pf:1,minS:4,minIn:16,curve:'C',vdLim:st.vdF,feeder:true},mainNode);
+    const zInv=230/(2*Ii);
+    const outNode={zS:acIn.next.zS,zW:zInv,zN:wholeMode&&!grid.on&&!gen.on?zInv:acIn.next.zN,vd:acIn.next.vd,weak:'inverter (battery mode)'};
+    const acOut=line({Ib:Ii,ph:inv.ph,len:inv.acLen,method:'B',mat:'cu',pf:1,minS:4,minIn:16,curve:'C',vdLim:st.vdF,feeder:true},outNode);
+    // DC battery
+    const Ib=inv.kw*1000/(inv.bv*.92), fuse=DC_FUSE.find(f=>f>=Ib*1.25)||DC_FUSE[DC_FUSE.length-1];
+    const bc=(DC_CAB.find(([s,a])=>a>=fuse&&(2*RHOH.cu*inv.bLen/s*Ib)/inv.bv*100<=1)||DC_CAB[DC_CAB.length-1])[0];
+    // PV
+    const panels=Math.max(1,Math.round(inv.pv*1000/580)), perStr=Math.ceil(panels/Math.max(1,inv.strings)), vmp=perStr*43, Isc=14.2;
+    const pvS=[4,6,10,16].find(s=>(2*RHOH.cu*inv.pvLen/s*13.4)/vmp*100<=1.5)||16;
+    R.inv={Ii,acIn,acOut,Ibat:Ib,fuse,bc,panels,perStr,vmp,voc:perStr*52,pvS,pvBrk:rating(Isc*1.25),Isc};
+    if(perStr>9) add('w','PV: '+perStr+' panels per string gives Voc ≈ '+f0(perStr*52*1.1)+' V in winter: check the inverter MPPT max voltage, or add strings.');
+    if(backupMode){
+      backNode=acOut.next;
+      const ib=Math.max(...iBack);
+      R.invLoad=ib/Ii;
+      if(ib>Ii) add('w','Backup load '+f0(ib)+' A is above the inverter rating '+f0(Ii)+' A ('+inv.kw+' kW).');
+    }
+    if(wholeMode){
+      mainBus=acOut.next;
+      R.invLoad=Imain/Ii;
+      if(Imain>Ii) add('w','House demand '+f0(Imain)+' A is above the inverter rating '+f0(Ii)+' A: in battery mode the inverter will overload.');
+    }
+  }
+  mainRoots.forEach(({b})=>{b._feedRow=null;const r={kind:'b',board:b,ph:b._ph,Ib:(b._ph===3?Math.max(...b._I):b._I[0]+b._I[1]+b._I[2])*b.ks,len:+b.len||1,method:b.method,mat:b.mat,curve:'C',minS:2.5,minIn:b._feedMin,pf:.9,vdLim:st.vdF};r.res=line(r,mainBus);b._root=r;b._isRoot=true;sizeBoard(b,r.res.next,r)});
+  backRoots.forEach(({b})=>{const r={kind:'b',board:b,ph:b._ph,Ib:(b._ph===3?Math.max(...b._I):b._I[0]+b._I[1]+b._I[2])*b.ks,len:+b.len||1,method:b.method,mat:b.mat,curve:'C',minS:2.5,minIn:b._feedMin,pf:.9,vdLim:st.vdF};r.res=line(r,backNode);b._root=r;b._isRoot=true;sizeBoard(b,r.res.next,r)});
+  // ordered list of boards for sheets (DFS)
+  const order=[];const walk=b=>{order.push(b);b._rows.filter(r=>r.kind==='b').forEach(r=>walk(r.board))};
+  mainRoots.forEach(x=>walk(x.b));backRoots.forEach(x=>walk(x.b));
+  S.boards.forEach(b=>{if(!order.includes(b)) add('w',b.name+' is not connected.')});
+  // root notes
+  [...mainRoots,...backRoots].forEach(({b})=>b._root.res.notes.forEach(n=>add(n.lvl,'Feeder to '+b.name+': '+n.m)));
+  if(R.inv){[R.inv.acIn,R.inv.acOut].forEach((x,i)=>x.notes.forEach(n=>add(n.lvl,'Inverter AC-'+(i?'OUT':'IN')+': '+n.m)))}
+  const wk=[...new Set(WEAK)];
+  if(WEAK.length) add('i','On '+wk.join(' / ')+' alone, a short circuit gives too little current to trip '+WEAK.length+' breaker(s) magnetically. The source clears it (inverter current limit / generator protection). Normal: keep RCDs on every circuit.');
+  return{W,R,order,mainRoots,backRoots,mainNode,mainBus,backNode,iMain,iBack,mainPh,backupMode,wholeMode};
+}
+
+/* ================= SVG drawing ================= */
+const SW=1680, SH=1188;
+const T=(x,y,s,o)=>{o=o||{};return `<text x="${x}" y="${y}" font-size="${o.s||13}" text-anchor="${o.a||'middle'}" font-weight="${o.w||400}" fill="${o.c||'#111'}"${o.r?` transform="rotate(${o.r} ${x} ${y})"`:''}>${esc(s)}</text>`};
+const L=(x1,y1,x2,y2,w,c)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c||'#111'}" stroke-width="${w||2}"/>`;
+const RC=(x,y,w,h,o)=>{o=o||{};return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${o.f||'none'}" stroke="${o.c||'#111'}" stroke-width="${o.w||2}"${o.rx?` rx="${o.rx}"`:''}${o.d?` stroke-dasharray="${o.d}"`:''}/>`};
+function sym(kind,x,y){ // vertical device occupying y..y+70
+  let s=L(x,y,x,y+20)+L(x,y+52,x,y+70)+L(x,y+52,x-15,y+23);
+  if(kind==='iso') s+=L(x-7,y+20,x+7,y+20);
+  else if(kind==='rccb') s+=L(x-7,y+20,x+7,y+20)+`<ellipse cx="${x-5}" cy="${y+38}" rx="21" ry="9" fill="none" stroke="#111" stroke-width="1.4"/>`;
+  else{s+=L(x-5,y+15,x+5,y+25)+L(x-5,y+25,x+5,y+15);if(kind==='rcbo') s+=`<ellipse cx="${x-5}" cy="${y+38}" rx="21" ry="9" fill="none" stroke="#111" stroke-width="1.4"/>`}
+  return s;
+}
+const earth=(x,y)=>L(x,y,x,y+14)+L(x-14,y+14,x+14,y+14)+L(x-9,y+20,x+9,y+20)+L(x-4,y+26,x+4,y+26);
+function frame(P,title,no,tot){
+  const x=1060,y=1008,w=600;
+  let s=RC(20,20,SW-40,SH-40,{w:2.5})+RC(x,y,w,SH-20-y,{w:2});
+  s+=L(x,y+40,x+w,y+40,1)+L(x,y+80,x+w,y+80,1)+L(x,y+120,x+w,y+120,1)+L(x+300,y+40,x+300,y+80,1);
+  [150,225,350,450].forEach(d=>s+=L(x+d,y+120,x+d,SH-20,1));
+  const cell=(cx,cy,lab,val,o)=>T(cx+8,cy+13,lab,{s:10,a:'start',c:'#666'})+T(cx+8,cy+32,val,Object.assign({s:14,a:'start'},o||{}));
+  s+=T(x+12,y+27,'CLOSED CIRCUIT ENGINEERING',{s:18,a:'start',w:700})+T(x+w-12,y+27,'closedcircuiteng.com',{s:12,a:'end',c:'#444'});
+  s+=cell(x,y+40,'CLIENT',P.client)+cell(x+300,y+40,'PROJECT',P.title);
+  s+=cell(x,y+80,'DRAWING',title,{w:700});
+  s+=cell(x,y+120,'DWG NO.',P.dwg+'-'+String(no).padStart(2,'0'))+cell(x+150,y+120,'REV',P.rev)+cell(x+225,y+120,'DATE',P.date)+cell(x+350,y+120,'SHEET',no+' / '+tot)+cell(x+450,y+120,'SCALE','NTS');
+  s+=T(40,SH-30,'Designed by '+(P.engineer||'')+(P.address?' · Site: '+P.address:'')+' · Cable sizing per IEC 60364-5-52 (simplified). Check before construction.',{s:11,a:'start',c:'#555'});
+  return s;
+}
+const WM=`<text x="840" y="620" font-size="84" font-weight="700" fill="#0F172A" opacity=".06" text-anchor="middle" transform="rotate(-18 840 594)">FREE VERSION · closedcircuiteng.com</text>`;
+const svgWrap=b=>`<div class="sheet"><svg viewBox="0 0 ${SW} ${SH}" xmlns="http://www.w3.org/2000/svg" font-family="Arial,Helvetica,sans-serif">${b}${FREE?WM:''}</svg></div>`;
+
+function sourcesSheet(C,no,tot,sheetOf){
+  const {R}=C, P=S.project, inv=S.inv;
+  let s=frame(P,'Single line diagram — supply sources & main bus',no,tot);
+  s+=T(40,60,'SUPPLY SOURCES',{s:24,a:'start',w:700});
+  s+=T(40,86,'Earthing system '+S.set.earth+' · '+(C.mainPh===3?'3-phase 400/230 V':'single-phase 230 V')+' · 50 Hz',{s:14,a:'start',c:'#444'});
+  const gx=230,gnx=560;
+  const hasG=S.grid.on, hasN=S.gen.on;
+  const ats=hasG&&hasN;
+  const outX=ats?(gx+gnx)/2:(hasG?gx:gnx);
+  if(hasG){
+    const g=R.grid;
+    if(S.grid.src==='tx'){s+=`<circle cx="${gx}" cy="125" r="22" fill="none" stroke="#111" stroke-width="2"/><circle cx="${gx}" cy="155" r="22" fill="none" stroke="#111" stroke-width="2"/>`;
+      s+=T(gx+34,130,'Transformer '+S.grid.kva+' kVA',{a:'start',w:700})+T(gx+34,148,'MV/LV, uk '+S.grid.uk+'%',{a:'start'})+L(gx,177,gx,200);}
+    else{s+=L(gx,110,gx,200)+`<path d="M${gx-8},112 L${gx},100 L${gx+8},112" fill="none" stroke="#111" stroke-width="2"/>`;
+      s+=T(gx+16,125,'GRID (EDL)',{a:'start',w:700,s:15})+T(gx+16,143,(S.grid.ph===3?'3-phase 400 V':'1-phase 230 V')+' · Ik '+S.grid.ik+' kA',{a:'start'});}
+    s+=RC(gx-22,200,44,34)+T(gx,222,'kWh',{s:12,w:700})+T(gx+32,222,'Energy meter',{a:'start',s:12});
+    s+=L(gx,234,gx,250)+sym('mcb',gx,250);
+    s+=T(gx+26,280,(g.In>63?'MCCB ':'')+g.poles+' '+g.In+' A',{a:'start',w:700})+T(gx+26,297,S.grid.src==='tx'?'LV main breaker':'Supply breaker (EDL)',{a:'start',s:12});
+    s+=L(gx,320,gx,ats?420:440)+T(gx+12,375,g.cable+' · '+S.grid.len+' m',{a:'start',s:12})+T(gx+12,391,'ΔU '+f2(g.cab.vd)+'%',{a:'start',s:12,c:'#555'});
+  }
+  if(hasN){
+    const g=R.gen;
+    s+=`<circle cx="${gnx}" cy="140" r="30" fill="none" stroke="#111" stroke-width="2"/>`+T(gnx,138,'G',{s:20,w:700})+T(gnx,156,'~',{s:16});
+    s+=T(gnx+42,132,S.gen.kind==='own'?'GENERATOR':'GENERATOR (subscription)',{a:'start',w:700,s:15})+T(gnx+42,150,S.gen.kind==='own'?S.gen.kva+' kVA · '+(S.gen.ph===3?'3-ph':'1-ph'):S.gen.amp+' A · '+(S.gen.ph===3?'3-ph':'1-ph'),{a:'start'});
+    s+=L(gnx,170,gnx,250)+sym('mcb',gnx,250)+T(gnx+26,280,(g.In>63?'MCCB ':'')+g.poles+' '+g.In+' A',{a:'start',w:700})+T(gnx+26,297,'Generator breaker',{a:'start',s:12});
+    s+=L(gnx,320,gnx,ats?420:440)+T(gnx+12,375,g.cable+' · '+S.gen.len+' m',{a:'start',s:12})+T(gnx+12,391,'ΔU '+f2(g.cab.vd)+'%',{a:'start',s:12,c:'#555'});
+  }
+  if(ats){
+    s+=RC(gx-40,420,gnx-gx+80,56,{w:2.5,f:'#F4F6F8'})+T(outX,445,'ATS — automatic transfer switch',{w:700,s:15})+T(outX,465,R.ats.poles+' '+R.ats.In+' A · Grid priority, generator backup',{s:12});
+    s+=L(outX,476,outX,520);
+  }else s+=L(outX,440,outX,520);
+  // main bus
+  const busY=C.wholeMode?880:540;
+  const drops=[];
+  if(!C.wholeMode) C.mainRoots.forEach(({b})=>drops.push({b,y:busY}));
+  let busX1=Math.min(outX,140), busX2=outX+60;
+  if(C.wholeMode){
+    // ATS out → inverter in series
+    s+=L(outX,520,outX,580);
+  }else{
+    s+=T(outX+12,512,'MAIN BUS',{a:'start',s:12,w:700});
+  }
+  // inverter block
+  const ix=C.backupMode?1000:outX;
+  if(inv.on){
+    const I=R.inv;
+    let topY;
+    if(C.backupMode){topY=540;}
+    else{topY=520;}
+    // AC IN breaker
+    s+=L(ix,topY,ix,580)+sym('mcb',ix,580)+T(ix+26,608,I.acIn.poles+' '+I.acIn.curve+I.acIn.In+' A',{a:'start',w:700})+T(ix+26,625,'Inverter AC-IN · '+I.acIn.cable,{a:'start',s:12});
+    s+=L(ix,650,ix,680)+RC(ix-55,680,110,80,{w:2.5,f:'#F4F6F8'})+L(ix-55,760,ix+55,680,1.2)+T(ix-28,712,'=',{s:22,w:700})+T(ix+28,748,'~',{s:22,w:700});
+    s+=T(ix-70,705,'HYBRID INVERTER',{a:'end',w:700,s:14})+T(ix-70,723,inv.kw+' kW · '+(inv.ph===3?'3-ph':'1-ph')+' · '+f0(I.Ii)+' A',{a:'end',s:12})+T(ix-70,739,'bypass on grid/gen, battery on outage',{a:'end',s:11,c:'#555'});
+    s+=L(ix,760,ix,780)+sym('mcb',ix,780)+T(ix+26,808,I.acOut.poles+' '+I.acOut.curve+I.acOut.In+' A',{a:'start',w:700})+T(ix+26,825,'Inverter AC-OUT · '+I.acOut.cable,{a:'start',s:12});
+    s+=L(ix,850,ix,880);
+    // DC side: battery + PV to the right
+    const bx=ix+260;
+    s+=L(ix+55,740,bx-60,740)+RC(bx-150,730,40,20)+L(bx-150,740,bx-110,740,1.2)+T(bx-130,722,'Fuse '+I.fuse+' A',{s:11});
+    s+=L(bx-60,740,bx,740)+L(bx,740,bx,760);
+    for(let k=0;k<3;k++){const yy=764+k*14;s+=L(bx-22,yy,bx+22,yy,3)+L(bx-11,yy+6,bx+11,yy+6,3)}
+    s+=T(bx+34,770,'BATTERY LiFePO4',{a:'start',w:700,s:14})+T(bx+34,788,inv.bv+' V · '+inv.bkwh+' kWh',{a:'start',s:12})+T(bx+34,804,'2×'+I.bc+' mm² Cu · '+inv.bLen+' m · DC breaker',{a:'start',s:12});
+    // PV
+    const py=600;
+    s+=L(ix+55,700,bx-60,700)+L(bx-60,700,bx-60,py+50);
+    s+=sym('iso',bx-60,py-20);
+    s+=L(bx-60,py-20,bx-60,py-40)+RC(bx-100,py-110,80,70,{f:'#EAF2FF'})+L(bx-100,py-75,bx-20,py-75,1)+L(bx-60,py-110,bx-60,py-40,1);
+    s+=T(bx+0,py-90,'PV ARRAY',{a:'start',w:700,s:14})+T(bx+0,py-72,f1(inv.pv)+' kWp · '+I.panels+' panels',{a:'start',s:12})+T(bx+0,py-56,inv.strings+' string(s) × '+I.perStr+' · Vmp ≈ '+I.vmp+' V',{a:'start',s:12});
+    s+=T(bx-30,py+10,'DC isolator 2P '+I.pvBrk+' A 1000 V',{a:'start',s:12})+T(bx-30,py+26,'+ SPD DC type 2 · solar cable '+I.pvS+' mm²',{a:'start',s:12});
+    if(C.backupMode){
+      s+=T(ix+12,898,'BACKUP BUS (inverter output)',{a:'start',s:12,w:700});
+      C.backRoots.forEach(({b})=>drops.push({b,y:880,back:true}));
+    }else{
+      C.mainRoots.forEach(({b})=>drops.push({b,y:880}));
+      s+=T(ix+12,898,'MAIN BUS (inverter output)',{a:'start',s:12,w:700});
+    }
+  }
+  // draw drops: as boxes with breaker
+  const groups={};drops.forEach(d=>{(groups[d.y+(d.back?'b':'')]=groups[d.y+(d.back?'b':'')]||[]).push(d)});
+  Object.values(groups).forEach(g=>{
+    const y=g[0].y, base=g[0].back?ix:(C.wholeMode?ix:outX);
+    let xs;
+    if(g[0].back||C.wholeMode) xs=g.map((_,i)=>base+i*150);
+    else{xs=g.map((_,i)=>140+i*150);}
+    if(!g[0].back&&!C.wholeMode&&inv.on) xs.push(ix);
+    const x1=Math.min(base,...xs)-20,x2=Math.max(base,...xs)+20;
+    s+=L(x1,y,x2,y,5);
+    g.forEach((d,i)=>{
+      const x=xs[i], r=d.b._root.res, yy=y;
+      if(yy>800){ // short drops near title area
+        s+=L(x,yy,x,yy+12)+sym('mcb',x,yy+12).replace(/stroke-width="2"/g,'stroke-width="1.8"');
+        s+=T(x+22,yy+42,r.poles+' '+r.curve+r.In+' A',{a:'start',s:11,w:700});
+        s+=L(x,yy+82,x,yy+92)+RC(x-48,yy+92,96,26,{w:2,f:'#fff'})+T(x,yy+110,d.b.name,{s:12,w:700});
+        s+=T(x,yy+132,r.cable+' · '+d.b.len+' m',{s:10.5});
+      }else{
+        s+=L(x,yy,x,yy+30)+sym('mcb',x,yy+30)+T(x+22,yy+60,r.poles+' '+r.curve+r.In+' A',{a:'start',s:12,w:700})+T(x+22,yy+76,r.icu+' kA',{a:'start',s:11});
+        s+=L(x,yy+100,x,yy+170)+T(x+8,yy+132,r.cable,{a:'start',s:11})+T(x+8,yy+146,d.b.len+' m · ΔU '+f2(r.vdT)+'%',{a:'start',s:11,c:'#555'});
+        s+=RC(x-55,yy+170,110,44,{w:2,f:'#fff'})+T(x,yy+190,d.b.name,{s:13,w:700})+T(x,yy+206,'sheet '+sheetOf(d.b),{s:11,c:'#555'});
+      }
+    });
+  });
+  if(!C.wholeMode&&!inv.on){}
+  // earthing
+  s+=earth(140,980)+L(140,960,140,980)+T(160,975,'Main earthing terminal → earth electrode',{a:'start',s:12})+T(160,991,S.set.earth==='TT'?'TT: RA × IΔn ≤ 50 V (RA ≤ 166 Ω for 300 mA; aim < 30 Ω)':'TN-S: PE from source',{a:'start',s:11,c:'#555'});
+  // summary
+  const sx=1250, sy=80;
+  const rows=[['Main demand (diversified)',C.iMain.map(x=>f0(x)).join(' / ')+' A'],
+    C.backupMode?['Backup demand',f0(Math.max(...C.iBack))+' A']:null,
+    R.invLoad!=null?['Inverter loading',f0(R.invLoad*100)+' %']:null,
+    ['Ik max at main bus',f1(230/C.mainNode.zS/1000)+' kA'],
+    ['ΔU at main bus',f2(C.mainNode.vd)+' %'],
+    ['Ambient / grouping',S.set.amb+' °C / '+S.set.grp],
+    ['ΔU limits',S.set.vdL+'% lighting · '+S.set.vdO+'% other']].filter(Boolean);
+  s+=RC(sx,sy,370,30+rows.length*24,{w:1.5,f:'#FAFBFC'})+T(sx+12,sy+21,'SUMMARY',{a:'start',w:700,s:13});
+  rows.forEach((r,i)=>{s+=T(sx+12,sy+46+i*24,r[0],{a:'start',s:12,c:'#444'})+T(sx+358,sy+46+i*24,r[1],{a:'end',s:12,w:700})});
+  s+=RC(sx,sy+50+rows.length*24,370,72,{w:1,f:'none',d:'4 3'})+T(sx+12,sy+72+rows.length*24,'AC SPD type 2 + main RCD 300 mA type S at MDB.',{a:'start',s:11})+T(sx+12,sy+90+rows.length*24,'Interlock: inverter output never back-feeds the grid',{a:'start',s:11})+T(sx+12,sy+106+rows.length*24,'(ATS / inverter anti-islanding).',{a:'start',s:11});
+  return svgWrap(s);
+}
+
+const ROWS=['Ref','Circuit','Device','Rating','Breaking cap.','RCD','Cable','Length','Install.','Phase','Power','Ib','Iz','ΔU circ. / total','Ik max / min end','Check'];
+function boardSheets(b,startNo,tot,sheetOf,parentName){
+  const P=S.project, rows=b._rows, per=13, pages=Math.max(1,Math.ceil(rows.length/per)), out=[];
+  const fr=b._root||b._feed, node=b._node;
+  for(let p=0;p<pages;p++){
+    let s=frame(P,'Single line diagram — '+b.name+(pages>1?' ('+(p+1)+'/'+pages+')':''),startNo+p,tot);
+    s+=T(40,60,b.name.toUpperCase(),{s:26,a:'start',w:700});
+    s+=T(40,86,'Fed from '+parentName+' · '+(b._ph===3?'3-phase 400/230 V':'1-phase 230 V')+' · feeder '+fr.res.cable+', '+b.len+' m, '+fr.res.poles+' '+fr.res.In+' A',{s:14,a:'start',c:'#333'});
+    s+=T(40,106,'Connected load '+(b._ph===3?b._I.map(f0).join(' / ')+' A (L1/L2/L3)':f0(b._I[0])+' A')+' · demand × ks '+b.ks+' = '+f0(fr.Ib)+' A · Installed '+f1(b._kw)+' kW · Ik max at bus '+f1(230/node.zS/1000)+' kA · ΔU at bus '+f2(node.vd)+'%',{s:13,a:'start',c:'#555'});
+    // incomer
+    const ix=150;
+    s+=L(ix,120,ix,140)+`<path d="M${ix-7},128 L${ix},140 L${ix+7},128" fill="none" stroke="#111" stroke-width="2"/>`;
+    s+=sym('iso',ix,140)+T(ix+26,168,'Main switch '+fr.res.poles+' '+rating(fr.res.In)+' A',{a:'start',s:12,w:700});
+    const mainRcd=!b._feed; // root boards get 300 mA S
+    if(mainRcd){s+=sym('rccb',ix,210)+T(ix+26,238,'RCD '+fr.res.poles+' '+rating(fr.res.In)+' A 300 mA type S',{a:'start',s:12,w:700});}
+    else s+=L(ix,210,ix,280);
+    const n=Math.min(per,rows.length-p*per), x0=260, cw=100, busY=290;
+    const busEnd=Math.max(x0+n*cw,ix+300);
+    s+=L(ix,280,ix,busY)+L(ix-20,busY,busEnd,busY,6)+T(busEnd,busY-10,(b._ph===3?'L1 L2 L3 N PE':'L N PE'),{a:'end',s:11,c:'#555'});
+    if(!b._feed) s+=L(ix-60,busY,ix-60,busY+30)+`<rect x="${ix-74}" y="${busY+30}" width="28" height="40" fill="none" stroke="#111" stroke-width="1.5"/>`+T(ix-60,busY+56,'SPD',{s:9})+earth(ix-60,busY+70);
+    // table grid
+    const ty=470, rh=28, tx=40, hw=220;
+    const tEnd=x0+Math.max(n,1)*cw;
+    s+=RC(tx,ty,tEnd-tx,ROWS.length*rh,{w:1.5});
+    ROWS.forEach((h,i)=>{if(i)s+=L(tx,ty+i*rh,tEnd,ty+i*rh,.6,'#888');s+=T(tx+8,ty+i*rh+19,h,{a:'start',s:12,w:600,c:'#333'})});
+    s+=L(x0,ty,x0,ty+ROWS.length*rh,1.2);
+    const notes=[];
+    for(let k=0;k<n;k++){
+      const i=p*per+k, r=rows[i], q=r.res, cx=x0+k*cw+cw/2;
+      if(k) s+=L(x0+k*cw,ty,x0+k*cw,ty+ROWS.length*rh,.6,'#888');
+      s+=L(cx,busY,cx,busY+30)+sym(q.dev==='RCBO'?'rcbo':'mcb',cx,busY+30)+L(cx,busY+100,cx,400);
+      if(r.kind==='b'){s+=RC(cx-42,400,84,30,{f:'#F4F6F8'})+T(cx,420,r.board.name,{s:11,w:700});}
+      else{s+=`<circle cx="${cx}" cy="414" r="14" fill="#fff" stroke="#111" stroke-width="2"/>`+T(cx,419,r.t.ab,{s:r.t.ab.length>1?10:12,w:700});}
+      s+=L(cx,430,cx,ty,1,'#999').replace('/>',' stroke-dasharray="2 3"/>');
+      const nm=r.name.replace('→ ',''), w1=nm.length>13?nm.slice(0,nm.lastIndexOf(' ',13)>0?nm.lastIndexOf(' ',13):13):nm, w2=nm.slice(w1.length).trim();
+      const myNotes=q.notes.map(x=>{notes.push({n:notes.length+1,lvl:x.lvl,m:'Q'+(i+1)+': '+x.m});return notes.length});
+      const rcdTxt=r.rcd?'30 mA '+((r.t&&r.t.rcdT)||'AC'):'—';
+      const vals=['Q'+(i+1),null,q.dev,q.poles+' '+q.curve+q.In+' A',q.icu+' kA',rcdTxt,q.cable,r.len+' m',r.method+(r.mat==='al'?' Al':''),r.phase,f2(r.kw)+' kW',f1(r.Ib)+' A',f0(q.cab.iz)+' A',f2(q.vdC)+' / '+f2(q.vdT)+'%',f1(q.ikMax/1000)+'k / '+f0(q.ikMinEnd),myNotes.length?'⚠ '+myNotes.join(','):'✓'];
+      vals.forEach((v,j)=>{
+        const y=ty+j*rh+19;
+        if(j===1){s+=w2?T(cx,y-7,w1,{s:11,w:700})+T(cx,y+6,w2.length>14?w2.slice(0,13)+'…':w2,{s:11,w:700}):T(cx,y,w1,{s:11,w:700});return}
+        const bad=j===15&&myNotes.length, good=j===15&&!myNotes.length;
+        s+=T(cx,y,v,{s:j===14||j===13?10.5:12,w:j===3||j===6?700:400,c:bad?(q.notes.some(x=>x.lvl==='e')?'#DC2626':'#B45309'):good?'#0E9F8E':'#111'});
+      });
+    }
+    // notes area
+    let ny=ty+ROWS.length*rh+30;
+    s+=T(40,ny,'NOTES',{a:'start',s:13,w:700});ny+=18;
+    const std=['Ik min end = phase–neutral fault at the far end of the cable, on the normal supply. Feeder breakers are one step above the largest outgoing breaker.','Cable Iz includes ambient '+S.set.amb+' °C and grouping '+S.set.grp+'. PE = phase section up to 16 mm².'];
+    [...notes.map(x=>'('+x.n+') '+x.m),...std].slice(0,9).forEach(t=>{s+=T(40,ny,t.length>150?t.slice(0,148)+'…':t,{a:'start',s:11,c:t[0]==='('?'#B45309':'#444'});ny+=16});
+    out.push(svgWrap(s));
+  }
+  return out;
+}
+
+function bomSheet(C,no,tot){
+  let s=frame(S.project,'Bill of materials — protection & cables',no,tot);
+  s+=T(40,60,'BILL OF MATERIALS',{s:24,a:'start',w:700});
+  const dev={},cab={},add=(m,k,q)=>{m[k]=(m[k]||0)+q};
+  const devName=q=>(q.dev+' '+q.poles+' '+(q.curve||'')+q.In+' A '+q.icu+' kA').replace('  ',' ');
+  C.order.forEach(b=>{
+    const fr=b._root||b._feed;
+    add(dev,'Switch-disconnector '+fr.res.poles+' '+rating(fr.res.In)+' A',1);
+    if(!b._feed){add(dev,'RCD '+fr.res.poles+' '+rating(fr.res.In)+' A 300 mA type S',1);add(dev,'AC SPD type 2',1)}
+    b._rows.forEach(r=>{let k=devName(r.res);if(r.res.dev==='RCBO')k+=' 30 mA '+((r.t&&r.t.rcdT)||'AC');else if(r.rcd)add(dev,'RCD add-on 30 mA',1);add(dev,k,1);add(cab,r.res.cable,r.len)});
+  });
+  [...C.mainRoots,...C.backRoots].forEach(({b})=>{add(dev,devName(b._root.res),1);add(cab,b._root.res.cable,b.len)});
+  const R=C.R;
+  if(R.grid){add(dev,'Supply breaker '+R.grid.poles+' '+R.grid.In+' A',1);add(cab,R.grid.cable,S.grid.len)}
+  if(R.gen){add(dev,'Generator breaker '+R.gen.poles+' '+R.gen.In+' A',1);add(cab,R.gen.cable,S.gen.len)}
+  if(R.ats) add(dev,'ATS '+R.ats.poles+' '+R.ats.In+' A',1);
+  if(R.inv){const I=R.inv;add(dev,devName(I.acIn),1);add(dev,devName(I.acOut),1);add(dev,'DC fuse '+I.fuse+' A + holder',2);add(dev,'DC breaker 2P '+I.fuse+' A (battery)',1);add(dev,'PV DC isolator 2P '+I.pvBrk+' A 1000 V',S.inv.strings);add(dev,'DC SPD type 2 1000 V',1);
+    add(cab,I.acIn.cable,S.inv.acLen*2);add(cab,'1×'+I.bc+' mm² Cu (battery, red+black)',S.inv.bLen*2);add(cab,'Solar cable '+I.pvS+' mm²',S.inv.pvLen*2*S.inv.strings)}
+  const table=(x,y,title,m,unit)=>{
+    const ks=Object.keys(m).sort();
+    let t=RC(x,y,700,30+ks.length*24,{w:1.5})+T(x+12,y+21,title,{a:'start',w:700,s:14})+T(x+688,y+21,unit,{a:'end',w:700,s:13});
+    ks.forEach((k,i)=>{const yy=y+30+i*24;t+=L(x,yy,x+700,yy,.6,'#999')+T(x+12,yy+17,k,{a:'start',s:12.5})+T(x+688,yy+17,unit==='Qty'?m[k]:f0(m[k]*1.1)+' m',{a:'end',s:12.5,w:700})});
+    return t;
+  };
+  s+=table(40,90,'PROTECTION DEVICES',dev,'Qty');
+  s+=table(800,90,'CABLES (lengths +10% allowance)',cab,'Total');
+  return svgWrap(s);
+}
+
+/* ================= render ================= */
+function render(){
+  try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}
+  const C=compute();
+  const names={main:C.wholeMode?'inverter output (main bus)':'main bus',backup:'inverter output (backup bus)'};
+  // sheet numbering
+  const pagesOf=b=>Math.max(1,Math.ceil(b._rows.length/13));
+  let n=2;const start={};C.order.forEach(b=>{start[b.id]=n;n+=pagesOf(b)});
+  const tot=n;
+  const sheetOf=b=>start[b.id];
+  let html=sourcesSheet(C,1,tot,sheetOf);
+  C.order.forEach(b=>{
+    const pn=b._isRoot?names[b._p]:(S.boards.find(x=>x.id===b._p)||{}).name;
+    boardSheets(b,start[b.id],tot,sheetOf,pn).forEach(x=>html+=x);
+  });
+  html+=FREE?lockedBom(tot):bomSheet(C,tot,tot);
+  $('#sheets').innerHTML=html;
+  const e=C.W.filter(x=>x.lvl==='e'),w=C.W.filter(x=>x.lvl==='w');
+  $('#warn').innerHTML='<h3>Design check — '+tot+' sheets</h3>'+(C.W.length?(C.W.some(x=>x.lvl!=='i')?'':'<div class="ok">✓ All circuits pass ampacity, voltage drop and fault-current checks.</div>')+'<ul>'+C.W.map(x=>'<li class="'+x.lvl+'">'+(x.lvl==='e'?'✖ ':x.lvl==='i'?'ℹ ':'⚠ ')+esc(x.msg)+'</li>').join('')+'</ul>':'<div class="ok">✓ All circuits pass ampacity, voltage drop and fault-current checks.</div>');
+}
+
+/* ================= editor ================= */
+const opt=(v,cur,txt)=>`<option value="${esc(v)}"${String(v)===String(cur)?' selected':''}>${esc(txt==null?v:txt)}</option>`;
+const inp=(k,v,lab,type,extra)=>`<label>${lab}<input data-k="${k}" type="${type||'text'}" value="${esc(v)}"${extra||''}></label>`;
+const sel=(k,v,lab,opts)=>`<label>${lab}<select data-k="${k}">${opts.map(o=>Array.isArray(o)?opt(o[0],v,o[1]):opt(o,v)).join('')}</select></label>`;
+const chk=(k,v,lab)=>`<label class="chk"><input type="checkbox" data-k="${k}"${v?' checked':''}> ${lab}</label>`;
+const METH=[['B','B conduit'],['E','E tray/air'],['D','D buried']], MAT=[['cu','Cu'],['al','Al']];
+function editor(){
+  const P=S.project,g=S.grid,n=S.gen,v=S.inv,t=S.set;
+  let h='';
+  if(S.req){const q=S.req;h+=`<details open style="border-color:var(--acc)"><summary>Client request (${esc(q.date||'')})</summary><div class="box" style="font-size:13px;line-height:1.6"><b>${esc(q.n)}</b> · ${esc(q.p)} · ${esc(q.a)}<br>${esc(q.t)}, ${q.f} floor(s) · grid ${q.gp||'?'}-ph ${q.ga||'?'} A · generator ${esc(q.gt)}${q.gt==='sub'?' '+q.gs+' A':q.gt==='own'?' '+q.gk+' kVA':''} · solar ${esc(q.st)}${q.ik?' '+q.ik+' kW':''}<br>Backup: ${esc((q.es||[]).join(', ')||'—')}${q.m?'<br>Notes: '+esc(q.m):''}<p class="hint">Circuits were generated from this request. Review lengths and loads before printing.</p></div></details>`}
+  h+=`<details open><summary>Project</summary><div class="box g">${inp('project.client',P.client,'Client')}${inp('project.title',P.title,'Project')}${inp('project.address',P.address,'Site address')}${inp('project.engineer',P.engineer,'Designed by')}${inp('project.dwg',P.dwg,'Drawing no.')}${inp('project.rev',P.rev,'Rev')}${inp('project.date',P.date,'Date','date')}</div></details>`;
+  h+=`<details open><summary>Sources</summary><div class="box">
+  ${chk('grid.on',g.on,'<b>Grid (EDL) / transformer</b>')}
+  ${g.on?`<div class="g">${sel('grid.src',g.src,'Supply',[['net','LV network (EDL)'],['tx','Own MV/LV transformer']])}${sel('grid.ph',g.ph,'Phases',[[1,'1-phase'],[3,'3-phase']])}
+  ${g.src==='tx'?inp('grid.kva',g.kva,'Transformer kVA','number')+inp('grid.uk',g.uk,'uk %','number'):inp('grid.sub',g.sub,'Supply breaker (A)','number')+inp('grid.ik',g.ik,'Ik at meter (kA)','number',' step="0.5"')}
+  ${inp('grid.len',g.len,'Cable to ATS (m)','number')}${sel('grid.method',g.method,'Install.',METH)}${sel('grid.mat',g.mat,'Conductor',MAT)}</div>`:''}
+  <hr style="border:0;border-top:1px solid var(--line);margin:10px 0">
+  ${chk('gen.on',n.on,'<b>Generator + ATS</b>')}
+  ${n.on?`<div class="g">${sel('gen.kind',n.kind,'Type',[['own','Own generator'],['sub','Subscription (اشتراك)']])}${sel('gen.ph',n.ph,'Phases',[[1,'1-phase'],[3,'3-phase']])}
+  ${n.kind==='own'?inp('gen.kva',n.kva,'Rating (kVA)','number'):inp('gen.amp',n.amp,'Subscription (A)','number')+inp('gen.ik',n.ik,'Ik at supply (kA)','number',' step="0.1"')}
+  ${inp('gen.len',n.len,'Cable to ATS (m)','number')}${sel('gen.method',n.method,'Install.',METH)}${sel('gen.mat',n.mat,'Conductor',MAT)}</div>`:''}
+  <hr style="border:0;border-top:1px solid var(--line);margin:10px 0">
+  ${chk('inv.on',v.on,'<b>Hybrid solar inverter + battery</b>')}
+  ${v.on?`<div class="g">${sel('inv.mode',v.mode,'Connection',[['backup','Feeds a backup board'],['whole','Feeds the whole house']])}${sel('inv.ph',v.ph,'Phases',[[1,'1-phase'],[3,'3-phase']])}${inp('inv.kw',v.kw,'Inverter kW','number',' step="0.5"')}${inp('inv.acLen',v.acLen,'AC cable (m)','number')}
+  ${sel('inv.bv',v.bv,'Battery V',[[24,'24 V'],[48,'48 V'],[51.2,'51.2 V']])}${inp('inv.bkwh',v.bkwh,'Battery kWh','number',' step="0.01"')}${inp('inv.bLen',v.bLen,'Battery cable (m)','number',' step="0.5"')}
+  ${inp('inv.pv',v.pv,'PV kWp','number',' step="0.01"')}${inp('inv.strings',v.strings,'Strings','number',' min="1"')}${inp('inv.pvLen',v.pvLen,'PV cable (m)','number')}</div>`:''}
+  </div></details>`;
+  h+=`<details><summary>Design settings</summary><div class="box g">${sel('set.amb',t.amb,'Ambient °C',[30,35,40,45,50])}${inp('set.grp',t.grp,'Grouping factor','number',' step="0.05" min="0.4" max="1"')}${inp('set.vdL',t.vdL,'ΔU max lighting %','number',' step="0.5"')}${inp('set.vdO',t.vdO,'ΔU max other %','number',' step="0.5"')}${inp('set.vdF',t.vdF,'ΔU target at boards %','number',' step="0.5"')}${sel('set.earth',t.earth,'Earthing',['TT','TN-S'])}</div>
+  <p class="hint box" style="margin:0;padding-top:0">Lebanon: TT is the usual case. Grouping 0.8 for 2–3 circuits in one conduit, 0.7 for 4–5.</p></details>`;
+  const parentOpts=b=>{
+    const desc=new Set([b.id]);let grew=true;while(grew){grew=false;S.boards.forEach(x=>{if(desc.has(x.parent)&&!desc.has(x.id)){desc.add(x.id);grew=true}})}
+    const o=[['main',v.on&&v.mode==='whole'?'Main bus (inverter out)':'Main bus (after ATS)']];
+    if(v.on&&v.mode==='backup') o.push(['backup','Backup bus (inverter out)']);
+    S.boards.forEach(x=>{if(!desc.has(x.id)) o.push([x.id,x.name])});
+    return o;
+  };
+  S.boards.forEach((b,bi)=>{
+    h+=`<details open><summary>Board: ${esc(b.name)} <small style="color:var(--muted);font-weight:400">(${b.circuits.length} circuits)</small></summary><div class="box">
+    <div class="g">${inp('b.'+bi+'.name',b.name,'Name')}${sel('b.'+bi+'.parent',b.parent,'Fed from',parentOpts(b))}${sel('b.'+bi+'.ph',b.ph,'Phases',[[1,'1-phase'],[3,'3-phase']])}${inp('b.'+bi+'.ks',b.ks,'Diversity ks','number',' step="0.05" min="0.1" max="1"')}${inp('b.'+bi+'.len',b.len,'Feeder length (m)','number')}${sel('b.'+bi+'.method',b.method,'Feeder install.',METH)}${sel('b.'+bi+'.mat',b.mat,'Feeder conductor',MAT)}</div>
+    <table class="ct"><tr><th>Circuit</th><th>Type</th><th>kW</th><th>m</th><th>Phase</th><th>Inst.</th><th>Mat</th><th title="30 mA RCD">30mA</th><th></th></tr>
+    ${b.circuits.map((c,ci)=>{const k='c.'+bi+'.'+ci+'.';return `<tr>
+      <td><input data-k="${k}name" value="${esc(c.name)}"></td>
+      <td><select data-k="${k}type">${Object.entries(TYPES).map(([id,t])=>opt(id,c.type,t.n)).join('')}</select></td>
+      <td style="width:58px"><input data-k="${k}kw" type="number" step="0.1" min="0" value="${c.kw}"></td>
+      <td style="width:52px"><input data-k="${k}len" type="number" min="1" value="${c.len}"></td>
+      <td style="width:62px"><select data-k="${k}ph">${(b.ph===3?['auto','L1','L2','L3','3P']:['auto']).map(x=>opt(x,c.ph)).join('')}</select></td>
+      <td style="width:46px"><select data-k="${k}method">${['B','E','D'].map(x=>opt(x,c.method)).join('')}</select></td>
+      <td style="width:50px"><select data-k="${k}mat">${MAT.map(x=>opt(x[0],c.mat,x[1])).join('')}</select></td>
+      <td style="width:34px;text-align:center"><input type="checkbox" data-k="${k}rcd"${c.rcd?' checked':''}></td>
+      <td style="width:26px"><button class="rm" data-act="delc" data-b="${bi}" data-c="${ci}" title="Delete">✕</button></td></tr>`}).join('')}
+    </table>
+    <div class="sub"><button data-act="addc" data-b="${bi}">+ Circuit</button><button class="rm" data-act="delb" data-b="${bi}">Delete board</button></div>
+    </div></details>`;
+  });
+  h+=`<button data-act="addb" style="width:100%;padding:9px">+ Add distribution board</button>
+  <p class="hint">Sub-board feeders are added automatically to the parent board. kW = expected running load of the circuit. Results update live on the right.</p>`;
+  $('#ed').innerHTML=h;
+}
+function setVal(k,el){
+  let v=el.type==='checkbox'?el.checked:el.value;
+  if(el.type==='number'||/\.(ph|bv|amb)$/.test(k)) v=v===''?0:+v;
+  const p=k.split('.');
+  let o;
+  if(p[0]==='b'){o=S.boards[+p[1]];o[p[2]]=v;return p[2]==='name'?'soft-name':p[2]==='ph'||p[2]==='parent'?'hard':'soft'}
+  if(p[0]==='c'){const c=S.boards[+p[1]].circuits[+p[2]];c[p[3]]=v;if(p[3]==='type'){c.rcd=TYPES[v].rcd;return'hard'}return'soft'}
+  S[p[0]][p[1]]=v;
+  return /\.(on|src|kind|mode)$/.test(k)?'hard':'soft';
+}
+let tm;
+$('#ed').addEventListener('input',e=>{const k=e.target.dataset.k;if(!k)return;const m=setVal(k,e.target);if(m==='hard'){editor();render();return}clearTimeout(tm);tm=setTimeout(render,180)});
+$('#ed').addEventListener('change',e=>{const k=e.target.dataset.k;if(!k)return;if(e.target.tagName==='SELECT'||e.target.type==='checkbox'){/* handled by input */} if(/\.name$/.test(k)&&k[0]==='b') editor()});
+$('#ed').addEventListener('click',e=>{
+  const a=e.target.dataset.act;if(!a)return;
+  const bi=+e.target.dataset.b, ci=+e.target.dataset.c;
+  if(a==='addc') S.boards[bi].circuits.push(cc('New circuit','sock',1,15));
+  if(a==='delc') S.boards[bi].circuits.splice(ci,1);
+  if(a==='addb'&&FREE&&S.boards.length>=MAXB){showPro('boards');return}
+  if(a==='addb'){const id='db'+uid();S.boards.push({id,name:'SDB-'+S.boards.length,parent:S.boards[0]?S.boards[0].id:'main',ph:1,len:15,method:'B',mat:'cu',ks:.8,circuits:[cc('Lighting','light',.3,15),cc('Sockets','sock',1.5,15)]})}
+  if(a==='delb'){if(!confirm('Delete board '+S.boards[bi].name+'?'))return;const id=S.boards[bi].id,p=S.boards[bi].parent;S.boards.splice(bi,1);S.boards.forEach(x=>{if(x.parent===id)x.parent=p})}
+  editor();render();
+});
+$('#b-print').onclick=()=>{track(FREE?'sld_free_print':'sld_print',{boards:S.boards.length});window.print()};
+$('#b-req').onclick=()=>{const t=prompt('Paste the client request code (CC1-…) from the email or WhatsApp:');if(!t)return;try{S=fromRequest(decodeReq(t));editor();render();document.querySelector('.ed').scrollTop=0}catch(err){alert('This is not a valid request code.')}};
+$('#b-sample').onclick=()=>{if(confirm('Load the sample villa? Current project will be replaced (save it first).')){S=sample();editor();render()}};
+$('#b-new').onclick=()=>{if(confirm('Start a new empty project? Current project will be replaced (save it first).')){S=blank();editor();render()}};
+$('#b-save').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,1)],{type:'application/json'}));a.download=(S.project.dwg||'project')+' '+(S.project.client||'').trim()+'.json';a.click()};
+$('#b-open').onclick=()=>$('#f-open').click();
+$('#f-open').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{try{const x=JSON.parse(t);if(!x.boards)throw 0;S=x;editor();render()}catch(err){alert('Not a valid project file.')}});e.target.value=''};
+
+function lockedBom(tot){
+  let s=frame(S.project,'Bill of materials — protection & cables',tot,tot);
+  s+=T(40,60,'BILL OF MATERIALS',{s:24,a:'start',w:700});
+  s+=RC(440,380,800,240,{w:2,f:'#F8FAFC',rx:16})+T(840,460,'Available in SLD Designer Pro',{s:34,w:700})+T(840,510,'Full breaker and cable list for quotations, your own logo on every sheet,',{s:18,c:'#444'})+T(840,540,'and client request import. Join the list at closedcircuiteng.com/sld-designer.html',{s:18,c:'#444'});
+  return svgWrap(s);
+}
+function showPro(why){
+  track('sld_pro_click',{reason:why});
+  const m=$('#pro');if(m){m.hidden=false;m.querySelector('.why').textContent=why==='boards'?'The free version is limited to '+MAXB+' distribution boards.':'';return}
+}
+if(FREE){
+  $('#b-req').remove();
+  const pro=document.createElement('button');pro.id='b-pro';pro.className='pri';pro.textContent='★ Get Pro';pro.onclick=()=>showPro('header');
+  $('#b-print').before(pro);
+  const home=document.createElement('a');home.href='index.html';home.textContent='closedcircuiteng.com';home.style.cssText='color:#94A3B8;font-size:13px;margin-inline-end:8px';
+  $('header h1').after(home);
+  const d=document.createElement('div');d.id='pro';d.hidden=true;
+  d.innerHTML=`<form class="pro-box"><button type="button" class="x" aria-label="Close">✕</button><h2>SLD Designer Pro</h2><p class="why"></p>
+  <ul><li>Unlimited boards and circuits</li><li>Your company name and logo on every sheet</li><li>Bill of materials for quotations</li><li>Client request form → diagram in one click</li></ul>
+  <p><b>Launching soon.</b> Join the list and get the launch price.</p>
+  <label>Name<input name="name" required></label><label>Phone (WhatsApp)<input name="phone" type="tel" required></label><label>Company<input name="company"></label>
+  <label>You are<select name="role"><option>Electrician</option><option>Solar installer</option><option>Electrical engineer</option><option>Contractor</option><option>Other</option></select></label>
+  <label>Country<input name="country" value="Lebanon"></label>
+  <button class="pri" type="submit">Join the Pro list</button><p class="st"></p></form>`;
+  document.body.appendChild(d);
+  d.querySelector('.x').onclick=()=>d.hidden=true;
+  d.addEventListener('click',e=>{if(e.target===d)d.hidden=true});
+  d.querySelector('form').addEventListener('submit',e=>{
+    e.preventDefault();const f=e.target, st=f.querySelector('.st');
+    if(!f.name.value.trim()||!f.phone.value.trim()){st.textContent='Please add your name and phone.';return}
+    const fd=new FormData(f);fd.append('service','SLD Designer Pro waitlist');fd.append('_subject','SLD Pro waitlist — '+f.name.value);
+    f.querySelector('[type=submit]').disabled=true;
+    fetch('https://formspree.io/f/myeejbol',{method:'POST',body:fd,headers:{Accept:'application/json'}}).then(r=>{if(!r.ok)throw 0;
+      track('generate_lead',{service:'sld_pro',page:location.pathname});
+      st.textContent='✓ You are on the list. We will contact you on WhatsApp at launch.';f.querySelectorAll('label,[type=submit]').forEach(x=>x.style.display='none')})
+    .catch(()=>{f.querySelector('[type=submit]').disabled=false;st.innerHTML='Sending failed. <a href="https://wa.me/96170368646?text='+encodeURIComponent('Hi, I want SLD Designer Pro')+'" target="_blank" rel="noopener">Message us on WhatsApp</a>'});
+  });
+  track('sld_free_open');
+}
+editor();render();
+</script>
+</body>
+</html>
