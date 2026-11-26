@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>كيف توجّه صحن الستلايت: Elevation وAzimuth وLNB Skew | Closed Circuit</title>
+<meta name="description" content="دليل عملي لتوجيه صحن الأقمار الصناعية: زاوية الارتفاع والاتجاه وتدوير الـ LNB، مع أرقام نايل سات وهوت بيرد وعرب سات من بيروت.">
+<meta property="og:title" content="كيف توجّه صحن الستلايت: Elevation وAzimuth وLNB Skew | Closed Circuit">
+<meta property="og:description" content="دليل عملي لتوجيه صحن الأقمار الصناعية: زاوية الارتفاع والاتجاه وتدوير الـ LNB، مع أرقام نايل سات وهوت بيرد وعرب سات من بيروت.">
+<meta property="og:url" content="https://closedcircuiteng.com/dish-pointing-guide.html">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://closedcircuiteng.com/img/og-cover.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-QH2MG1VK44"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-QH2MG1VK44');</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="canonical" href="https://closedcircuiteng.com/dish-pointing-guide.html">
+<link rel="alternate" hreflang="ar" href="https://closedcircuiteng.com/dish-pointing-guide.html">
+<link rel="alternate" hreflang="en" href="https://closedcircuiteng.com/en/dish-pointing-guide.html">
+<link rel="alternate" hreflang="x-default" href="https://closedcircuiteng.com/dish-pointing-guide.html">
+<link rel="stylesheet" href="style.css">
+<!-- schema -->
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "كيف توجّه صحن الستلايت: Elevation وAzimuth وLNB Skew", "description": "دليل عملي لتوجيه صحن الأقمار الصناعية: زاوية الارتفاع والاتجاه وتدوير الـ LNB، مع أرقام نايل سات وهوت بيرد وعرب سات من بيروت.", "inLanguage": "ar", "url": "https://closedcircuiteng.com/dish-pointing-guide.html", "mainEntityOfPage": "https://closedcircuiteng.com/dish-pointing-guide.html", "image": "https://closedcircuiteng.com/img/og-cover.png", "datePublished": "2026-11-26", "dateModified": "2026-11-26", "author": {"@type": "Person", "name": "Zakaria Kojok", "url": "https://closedcircuiteng.com/about.html", "sameAs": ["https://www.linkedin.com/in/zakaria-kojok-61966080/"]}, "publisher": {"@type": "Organization", "name": "Closed Circuit", "logo": {"@type": "ImageObject", "url": "https://closedcircuiteng.com/logo.svg"}}}</script>
+</head>
+<body>
+<header class="site-header"><div class="container nav">
+<a href="index.html" class="brand"><img src="logo.svg" alt="Closed Circuit"><span>Closed Circuit</span></a>
+<ul class="nav-links"><li><a href="index.html">الرئيسية</a></li><li><a href="energy.html">الطاقة الشمسية</a></li><li><a href="home-assistant.html">المنزل الذكي</a></li><li><a href="broadcast.html">البث والاستوديوهات</a></li><li><a href="sales.html">High-Ticket Closing</a></li><li><a href="tools.html">أدوات مجانية</a></li><li><a href="about.html">من نحن</a></li><li><a href="support.html">الدعم</a></li></ul>
+<div class="nav-cta"><a class="lang-switch" href="en/dish-pointing-guide.html" hreflang="en" lang="en">EN</a><a href="https://calendly.com/zkojok" target="_blank" rel="noopener" class="btn btn-ghost btn-sm">احجز مكالمة</a><a href="https://wa.me/96170368646" target="_blank" rel="noopener" class="btn btn-primary btn-sm">واتساب</a><button class="menu-btn" aria-label="القائمة">☰</button></div>
+</div></header>
+<main>
+<section class="hero hero-sm"><div class="grid-bg"></div><div class="container hero-inner"><span class="eyebrow">دليل الأقمار الصناعية</span><h1>كيف توجّه صحن الستلايت: <span class="grad-text">Elevation وAzimuth وSkew</span></h1><p class="lead">الزوايا الثلاثة اللي بتحتاجها لتلقط أي قمر، والخطوات عالأرض متل ما بيعملها المهندس.</p></div></section>
+<section><div class="container article">
+<p class="art-meta">بقلم زكريا قجق · مهندس بث وأقمار صناعية · ٦ دقائق قراءة</p>
+<p>لتلقط إشارة القمر بدّك تضبط ٣ زوايا: <b>Azimuth</b> (الاتجاه عالبوصلة)، و<b>Elevation</b> (قديش بيرتفع الصحن)، و<b>LNB skew</b> (تدوير رأس الـ LNB). هالزوايا بتتغيّر حسب مكانك وحسب القمر، لهيك ما في رقم واحد بيصلح لكل الناس.</p>
+
+<h2>١. Azimuth: لوين بيتطلّع الصحن</h2>
+<p>هي الزاوية من الشمال الحقيقي مع عقارب الساعة. الأقمار كلها فوق خط الاستوا، فمن لبنان كلها صوب الجنوب: من الجنوب الغربي (نايل سات) للجنوب الشرقي (أقمار آسيا).</p>
+<p class="art-tip">البوصلة بتأشّر عالشمال المغناطيسي، مش الحقيقي. بلبنان الفرق تقريباً ٥° شرق، فبتطرح ٥° من الـ Azimuth الحقيقي لتعرف شو بدّك تقرا عالبوصلة. وبعّد البوصلة عن الحديد والصحن وقت القراية.</p>
+
+<h2>٢. Elevation: قديش بيرتفع</h2>
+<p>هي زاوية الصحن فوق الأفق. كل ما كان القمر أقرب لخط طولك، بتكبر الزاوية. وانتبه لأي بناية أو شجرة بهالاتجاه.</p>
+<p class="art-tip">أغلب الصحون المنزلية <b>offset</b>: الإشارة بتجي عالـ LNB بزاوية، فالصحن بيكون شبه واقف. الزاوية اللي بتحطّها عالمسطرة = Elevation − زاوية الـ offset (غالباً بين ٢٠° و٢٧°، شوفها بكتالوج الصحن).</p>
+
+<h2>٣. LNB skew: تدوير الاستقطاب</h2>
+<p>إشارات H وV بتوصل مايلة شوي لأنك مش عنفس خط طول القمر. إذا القمر <b>غرب</b> موقعك، بتلفّ الـ LNB <b>مع عقارب الساعة</b>، وإذا <b>شرق</b> موقعك، <b>عكس عقارب الساعة</b>. وهيدا وإنت واقف ورا الصحن وعم تتطلّع صوب القمر. الاستقطاب الدائري (L/R) ما بيحتاج تدوير.</p>
+
+<h2>الأرقام من بيروت</h2>
+<div class="art-table"><table>
+<tr><th>القمر</th><th>Elevation</th><th>Azimuth حقيقي</th><th>عالبوصلة</th><th>LNB skew</th></tr>
+<tr><td>Nilesat 7°W</td><td>30.2°</td><td>238.7°</td><td>233.7°</td><td>45° مع عقارب الساعة</td></tr>
+<tr><td>Hot Bird 13°E</td><td>43.8°</td><td>216.6°</td><td>211.6°</td><td>30° مع عقارب الساعة</td></tr>
+<tr><td>Arabsat 26°E</td><td>49.3°</td><td>196.7°</td><td>191.7°</td><td>14° مع عقارب الساعة</td></tr>
+</table></div>
+
+<h2>خطوات التوجيه عالأرض</h2>
+<ol class="art-list"><li>ثبّت العامود <b>عمودي تماماً</b> بميزان مي. أي ميلان هون بيخرّب كل شي بعدين.</li><li>اضبط الـ Elevation عالمسطرة (بعد ما تطرح الـ offset).</li><li>وجّه الصحن تقريبياً عالـ Azimuth، ولفّ الـ LNB عالـ skew.</li><li>حرّك الصحن يمين وشمال <b>ببطء كتير</b> (درجة بكل مرة) لحتى تطلع الإشارة عالـ meter.</li><li>شدّ البراغي، ورجاع حسّن الـ Elevation والـ skew لأعلى <b>جودة</b> (MER أو C/N)، مش لأعلى قوة إشارة.</li></ol>
+<p>لأي موقع أو قمر تاني، الحاسبة بتعطيك الزوايا الثلاثة مع رسمة البوصلة والـ LNB، وبتحسبلك الـ link budget كمان.</p>
+
+<div class="cta-band"><h2>احسب الزوايا لموقعك</h2><p>اختار القمر وموقعك، والحاسبة بتعطيك الـ Elevation والـ Azimuth والـ skew مع الـ link budget.</p><div class="hero-actions"><a href="broadcast.html#satellite" class="btn btn-primary">افتح حاسبة الأقمار</a><a href="https://wa.me/96170368646" target="_blank" rel="noopener" class="btn btn-ghost">راسلنا على واتساب</a></div></div><p class="art-back"><a href="tools.html">← كل الأدوات والمقالات</a></p></div></section>
+</main>
+<footer><div class="container footer-inner">
+<a href="index.html" class="brand"><img src="logo.svg" alt=""><span>Closed Circuit</span></a>
+<div class="footer-links"><a href="tools.html">أدوات مجانية</a><a href="energy.html">الطاقة الشمسية</a><a href="home-assistant.html">المنزل الذكي</a><a href="broadcast.html">البث والاستوديوهات</a><a href="https://alztechpro.com/?utm_source=closedcircuiteng&amp;utm_medium=referral&amp;utm_campaign=ar&amp;utm_content=energy" target="_blank" rel="noopener">متجر ALZTECHPRO</a><a href="sales.html">High-Ticket Closing</a><a href="about.html">من نحن</a><a href="support.html">الدعم الفني</a><a href="faq.html">الأسئلة الشائعة</a></div>
+<div>© <span id="year"></span> Closed Circuit. جميع الحقوق محفوظة.</div>
+</div></footer>
+<a class="wa-float" href="https://wa.me/96170368646" target="_blank" rel="noopener" aria-label="واتساب"><svg viewBox="0 0 32 32"><path d="M16 3C8.8 3 3 8.7 3 15.8c0 2.5.7 4.9 2 7L3 29l6.4-2c2 1.1 4.3 1.7 6.6 1.7 7.2 0 13-5.7 13-12.8S23.2 3 16 3zm0 23.4c-2.1 0-4.1-.6-5.9-1.7l-.4-.3-3.8 1.2 1.2-3.7-.3-.4c-1.2-1.8-1.8-3.9-1.8-6 0-5.9 4.9-10.7 11-10.7s11 4.8 11 10.7-4.9 10.9-11 10.9zm6-8c-.3-.2-1.9-1-2.2-1.1-.3-.1-.5-.2-.7.2-.2.3-.8 1-1 1.2-.2.2-.4.2-.7.1-.3-.2-1.4-.5-2.6-1.6-1-.9-1.6-1.9-1.8-2.2-.2-.3 0-.5.1-.7l.5-.6c.2-.2.2-.4.3-.6.1-.2 0-.4 0-.6l-1-2.4c-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.3-1.2 1.1-1.2 2.8s1.2 3.2 1.4 3.5c.2.2 2.4 3.6 5.8 5 .8.3 1.4.5 1.9.7.8.3 1.5.2 2.1.1.6-.1 1.9-.8 2.2-1.5.3-.7.3-1.4.2-1.5-.1-.2-.3-.3-.6-.4z"/></svg></a>
+<script src="script.js"></script>
+</body>
+</html>

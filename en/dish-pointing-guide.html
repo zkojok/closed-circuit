@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How to point a satellite dish: elevation, azimuth and LNB skew | Closed Circuit</title>
+<meta name="description" content="A practical guide to satellite dish pointing: elevation, azimuth and LNB skew, with Nilesat, Hot Bird and Arabsat figures from Beirut.">
+<meta property="og:title" content="How to point a satellite dish: elevation, azimuth and LNB skew | Closed Circuit">
+<meta property="og:description" content="A practical guide to satellite dish pointing: elevation, azimuth and LNB skew, with Nilesat, Hot Bird and Arabsat figures from Beirut.">
+<meta property="og:url" content="https://closedcircuiteng.com/en/dish-pointing-guide.html">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://closedcircuiteng.com/img/og-cover.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../logo.svg" type="image/svg+xml">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-QH2MG1VK44"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-QH2MG1VK44');</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=Tajawal:wght@500;700&display=swap" rel="stylesheet">
+<link rel="canonical" href="https://closedcircuiteng.com/en/dish-pointing-guide.html">
+<link rel="alternate" hreflang="ar" href="https://closedcircuiteng.com/dish-pointing-guide.html">
+<link rel="alternate" hreflang="en" href="https://closedcircuiteng.com/en/dish-pointing-guide.html">
+<link rel="alternate" hreflang="x-default" href="https://closedcircuiteng.com/dish-pointing-guide.html">
+<link rel="stylesheet" href="../style.css">
+<!-- schema -->
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "How to point a satellite dish: elevation, azimuth and LNB skew", "description": "A practical guide to satellite dish pointing: elevation, azimuth and LNB skew, with Nilesat, Hot Bird and Arabsat figures from Beirut.", "inLanguage": "en", "url": "https://closedcircuiteng.com/en/dish-pointing-guide.html", "mainEntityOfPage": "https://closedcircuiteng.com/en/dish-pointing-guide.html", "image": "https://closedcircuiteng.com/img/og-cover.png", "datePublished": "2026-11-26", "dateModified": "2026-11-26", "author": {"@type": "Person", "name": "Zakaria Kojok", "url": "https://closedcircuiteng.com/about.html", "sameAs": ["https://www.linkedin.com/in/zakaria-kojok-61966080/"]}, "publisher": {"@type": "Organization", "name": "Closed Circuit", "logo": {"@type": "ImageObject", "url": "https://closedcircuiteng.com/logo.svg"}}}</script>
+</head>
+<body>
+<header class="site-header"><div class="container nav">
+<a href="index.html" class="brand"><img src="../logo.svg" alt="Closed Circuit"><span>Closed Circuit</span></a>
+<ul class="nav-links"><li><a href="index.html">Home</a></li><li><a href="energy.html">Solar Energy</a></li><li><a href="home-assistant.html">Smart Home</a></li><li><a href="broadcast.html">Broadcast & Studios</a></li><li><a href="sales.html">High-Ticket Closing</a></li><li><a href="tools.html">Free tools</a></li><li><a href="about.html">About</a></li><li><a href="support.html">Support</a></li></ul>
+<div class="nav-cta"><a class="lang-switch" href="../dish-pointing-guide.html" hreflang="ar" lang="ar">عربي</a><a href="https://calendly.com/zkojok" target="_blank" rel="noopener" class="btn btn-ghost btn-sm">Book a call</a><a href="https://wa.me/96170368646" target="_blank" rel="noopener" class="btn btn-primary btn-sm">WhatsApp</a><button class="menu-btn" aria-label="Menu">☰</button></div>
+</div></header>
+<main>
+<section class="hero hero-sm"><div class="grid-bg"></div><div class="container hero-inner"><span class="eyebrow">Satellite guide</span><h1>How to point a satellite dish: <span class="grad-text">elevation, azimuth, skew</span></h1><p class="lead">The three angles you need to lock onto any satellite, and the on-site steps an engineer follows.</p></div></section>
+<section><div class="container article">
+<p class="art-meta">By Zakaria Kojok · Broadcast &amp; satellite engineer · 6 min read</p>
+<p>To lock onto a satellite you set three angles: <b>azimuth</b> (compass direction), <b>elevation</b> (how high the dish looks) and <b>LNB skew</b> (rotation of the LNB). They depend on where you are and which satellite you want, so no single number works for everyone.</p>
+
+<h2>1. Azimuth: where the dish points</h2>
+<p>The angle from true north, clockwise. Geostationary satellites sit above the equator, so from the northern hemisphere they are all to the south: from south-west (e.g. Nilesat from Lebanon) to south-east (Asian satellites).</p>
+<p class="art-tip">A compass points to magnetic north, not true north. In Lebanon the difference is about 5° east, so subtract 5° from the true azimuth to get your compass reading. Keep the compass away from steel and from the dish while reading.</p>
+
+<h2>2. Elevation: how high it looks</h2>
+<p>The dish angle above the horizon. The closer the satellite is to your own longitude, the higher it is. Check for buildings or trees in that direction.</p>
+<p class="art-tip">Most home dishes are <b>offset</b> dishes: the signal reaches the LNB at an angle, so the dish looks almost upright. The setting on the scale = elevation − offset angle (usually 20° to 27°; check the dish datasheet).</p>
+
+<h2>3. LNB skew: polarization rotation</h2>
+<p>H and V signals arrive slightly tilted because you are not on the satellite's longitude. If the satellite is <b>west</b> of you, rotate the LNB <b>clockwise</b>; if it is <b>east</b>, <b>counter-clockwise</b>, seen from behind the dish looking toward the satellite. Circular polarization (L/R) needs no rotation.</p>
+
+<h2>Numbers from Beirut</h2>
+<div class="art-table"><table>
+<tr><th>Satellite</th><th>Elevation</th><th>True azimuth</th><th>Compass</th><th>LNB skew</th></tr>
+<tr><td>Nilesat 7°W</td><td>30.2°</td><td>238.7°</td><td>233.7°</td><td>45° clockwise</td></tr>
+<tr><td>Hot Bird 13°E</td><td>43.8°</td><td>216.6°</td><td>211.6°</td><td>30° clockwise</td></tr>
+<tr><td>Arabsat 26°E</td><td>49.3°</td><td>196.7°</td><td>191.7°</td><td>14° clockwise</td></tr>
+</table></div>
+
+<h2>Pointing steps on site</h2>
+<ol class="art-list"><li>Set the mast <b>perfectly vertical</b> with a spirit level. Any tilt here ruins everything later.</li><li>Set elevation on the scale (after subtracting the offset).</li><li>Point roughly to the azimuth and rotate the LNB to the skew.</li><li>Sweep left and right <b>very slowly</b> (one degree at a time) until the meter shows the signal.</li><li>Tighten the bolts, then fine-tune elevation and skew for best <b>quality</b> (MER or C/N), not best signal strength.</li></ol>
+<p>For any other site or satellite, the calculator gives all three angles with compass and LNB drawings, plus the full link budget.</p>
+
+<div class="cta-band"><h2>Get the angles for your site</h2><p>Pick the satellite and your location: the calculator gives elevation, azimuth and skew, plus the link budget.</p><div class="hero-actions"><a href="broadcast.html#satellite" class="btn btn-primary">Open the satellite calculator</a><a href="https://wa.me/96170368646" target="_blank" rel="noopener" class="btn btn-ghost">Message us on WhatsApp</a></div></div><p class="art-back"><a href="tools.html">← All tools & guides</a></p></div></section>
+</main>
+<footer><div class="container footer-inner">
+<a href="index.html" class="brand"><img src="../logo.svg" alt=""><span>Closed Circuit</span></a>
+<div class="footer-links"><a href="tools.html">Free tools</a><a href="energy.html">Solar Energy</a><a href="home-assistant.html">Smart Home</a><a href="broadcast.html">Broadcast & Studios</a><a href="https://alztechpro.com/?utm_source=closedcircuiteng&amp;utm_medium=referral&amp;utm_campaign=en&amp;utm_content=energy" target="_blank" rel="noopener">ALZTECHPRO Store</a><a href="sales.html">High-Ticket Closing</a><a href="about.html">About</a><a href="support.html">Support</a><a href="faq.html">FAQ</a></div>
+<div>© <span id="year"></span> Closed Circuit. All rights reserved.</div>
+</div></footer>
+<a class="wa-float" href="https://wa.me/96170368646" target="_blank" rel="noopener" aria-label="WhatsApp"><svg viewBox="0 0 32 32"><path d="M16 3C8.8 3 3 8.7 3 15.8c0 2.5.7 4.9 2 7L3 29l6.4-2c2 1.1 4.3 1.7 6.6 1.7 7.2 0 13-5.7 13-12.8S23.2 3 16 3zm0 23.4c-2.1 0-4.1-.6-5.9-1.7l-.4-.3-3.8 1.2 1.2-3.7-.3-.4c-1.2-1.8-1.8-3.9-1.8-6 0-5.9 4.9-10.7 11-10.7s11 4.8 11 10.7-4.9 10.9-11 10.9zm6-8c-.3-.2-1.9-1-2.2-1.1-.3-.1-.5-.2-.7.2-.2.3-.8 1-1 1.2-.2.2-.4.2-.7.1-.3-.2-1.4-.5-2.6-1.6-1-.9-1.6-1.9-1.8-2.2-.2-.3 0-.5.1-.7l.5-.6c.2-.2.2-.4.3-.6.1-.2 0-.4 0-.6l-1-2.4c-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.3-1.2 1.1-1.2 2.8s1.2 3.2 1.4 3.5c.2.2 2.4 3.6 5.8 5 .8.3 1.4.5 1.9.7.8.3 1.5.2 2.1.1.6-.1 1.9-.8 2.2-1.5.3-.7.3-1.4.2-1.5-.1-.2-.3-.3-.6-.4z"/></svg></a>
+<script src="../script.js"></script>
+</body>
+</html>
