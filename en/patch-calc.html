@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Broadcast Connector, Boot & Patch Panel Calculator | Closed Circuit</title>
+<meta name="description" content="Count BNC, XLR and RJ45 connectors, boots, cable metres, termination and patch panel ports for a TV studio, control room or OB van. Free.">
+<meta property="og:title" content="Connector, Boot & Patch Panel Calculator | Closed Circuit">
+<meta property="og:description" content="A full BOM for broadcast projects: connectors, boots, cable, termination and patch panels.">
+<meta property="og:url" content="https://closedcircuiteng.com/en/patch-calc.html">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://closedcircuiteng.com/img/og-cover.png">
+<link rel="canonical" href="https://closedcircuiteng.com/en/patch-calc.html">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-QH2MG1VK44"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());if(location.hostname!=='closedcircuiteng.com'&&location.hostname!=='www.closedcircuiteng.com')window['ga-disable-G-QH2MG1VK44']=true;try{var m=/[?&]cc-me=(on|off)/.exec(location.search);if(m){if(m[1]=='on')localStorage.setItem('cc_me','1');else localStorage.removeItem('cc_me');alert(m[1]=='on'?'✓ هالجهاز ما عاد ينعدّ بـ Google Analytics / This device is no longer counted':'هالجهاز رجع ينعدّ / This device is counted again')}if(localStorage.getItem('cc_me'))window['ga-disable-G-QH2MG1VK44']=true}catch(e){}gtag('config','G-QH2MG1VK44');</script>
+<link rel="icon" href="../logo.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: one work column. Project bar, patch panels table, equipment cards, then the bill of materials. */
+:root{
+  --bg:#0A0F1C; --bg-2:#0F172A; --card:#121B2F; --card-2:#17223a; --line:#1F2A44; --line-2:#2b3a5c;
+  --text:#E6EDF7; --muted:#93A1B8; --faint:#62708a;
+  --cyan:#22D3EE; --green:#34D399; --amber:#FBBF24; --red:#F87171;
+  --f:"Inter",system-ui,"Segoe UI",sans-serif; --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  --r:14px; color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--f);background:var(--bg);color:var(--text);line-height:1.7;font-size:16px}
+[hidden]{display:none!important}
+.wrap{max-width:1180px;margin:0 auto;padding:22px max(16px,env(safe-area-inset-left)) 60px;display:grid;gap:22px}
+h1{font-size:1.6rem;font-weight:800}
+h2{font-size:1.15rem;font-weight:800;display:flex;align-items:center;gap:10px}
+h2 .step{font-family:var(--mono);font-size:.8rem;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--cyan);color:#06222a}
+.muted{color:var(--muted);font-size:.92rem}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:grid;gap:14px;min-width:0}
+.top{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+label.f{display:grid;gap:4px;font-size:.8rem;color:var(--muted);min-width:0}
+input,select{font:inherit;font-size:.92rem;color:var(--text);background:var(--bg-2);border:1px solid var(--line-2);border-radius:9px;padding:7px 9px;min-width:0;width:100%}
+input[type=number]{font-family:var(--mono);direction:ltr;text-align:center}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--cyan);outline-offset:1px}
+.btn{font:inherit;font-weight:700;font-size:.9rem;border-radius:9px;padding:8px 14px;cursor:pointer;border:1px solid var(--line-2);background:var(--card-2);color:var(--text);white-space:nowrap}
+.btn.pri{background:linear-gradient(135deg,#22D3EE,#34D399);border:0;color:#04201c}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--muted)}
+.btn.del{background:transparent;border-color:transparent;color:var(--red);padding:6px 8px}
+.btn.sm{padding:5px 10px;font-size:.82rem}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th{font-size:.76rem;color:var(--faint);font-weight:700;text-align:start;padding:6px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:5px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+.pp-table td:nth-child(1){min-width:130px} .pp-table td:nth-child(2){min-width:120px}
+.pp-table td input[type=number]{width:74px}
+.chain{font-family:var(--mono);font-size:.78rem;color:var(--muted);direction:ltr;text-align:left;background:var(--bg-2);border-radius:8px;padding:8px 10px;overflow-x:auto;white-space:nowrap}
+.chain b{color:var(--cyan);font-weight:600}
+.dev{background:var(--card-2);border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;gap:10px}
+.dev-head{display:grid;grid-template-columns:minmax(0,1fr) 90px auto;gap:8px;align-items:end}
+.ports td input[type=number]{width:64px}
+.ports td:nth-child(1){min-width:110px} .ports td:nth-child(2){min-width:150px}
+.tag{font-family:var(--mono);font-size:.72rem;padding:1px 7px;border-radius:5px;background:var(--bg-2);color:var(--muted);white-space:nowrap}
+.dot{display:inline-block;width:11px;height:11px;border-radius:50%;border:1px solid rgba(255,255,255,.3);vertical-align:-1px;margin-inline-end:6px}
+.res-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.res{background:var(--bg-2);border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:8px;align-content:start;min-width:0}
+.res h3{font-size:.95rem;font-weight:800;display:flex;justify-content:space-between;gap:8px}
+.res h3 span{font-family:var(--mono);color:var(--cyan)}
+.res table td:last-child,.res table th:last-child{text-align:end;font-family:var(--mono)}
+.res td.n{font-family:var(--mono);text-align:end}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.kpi{background:var(--bg-2);border:1px solid var(--line);border-radius:12px;padding:12px}
+.kpi b{display:block;font-family:var(--mono);font-size:1.6rem;line-height:1.2}
+.kpi span{font-size:.8rem;color:var(--muted)}
+.warn{color:var(--amber)} .bad{color:var(--red)} .ok{color:var(--green)}
+.sitebar{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:space-between;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.sb-brand{display:flex;align-items:center;gap:8px;font-weight:800;color:var(--text);text-decoration:none}
+.sb-links{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center}.sb-links a{color:var(--muted);text-decoration:none;font-weight:600;font-size:.92rem}.sb-links a.btn{color:#04201c}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:20px;background:var(--text);color:var(--bg);padding:8px 16px;border-radius:999px;font-weight:700;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:1}
+/* lock */
+.lock{position:fixed;inset:0;background:var(--bg);display:grid;place-items:center;padding:16px;z-index:100}
+.lock form{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:26px;display:grid;gap:12px;width:min(360px,100%)}
+.lock h1{font-size:1.25rem}
+@media (max-width:640px){.dev-head{grid-template-columns:1fr 80px}.dev-head .btn{grid-column:1/-1;justify-self:start}}
+@media print{
+  .lock,.no-print,.btn{display:none!important}
+  body{background:#fff;color:#000;font-size:12px}
+  .panel,.res,.kpi{background:#fff;border-color:#ccc}
+  .muted,th,.kpi span{color:#555}
+  .wrap>section:not(#results){display:none}
+}
+</style>
+</head>
+<body>
+<div class="lock" id="lock" hidden>
+  <form id="lock-form" autocomplete="off">
+    <h1>Connector & Patch Calculator</h1>
+    <p class="muted">This page is private. Enter the password.</p>
+    <input type="password" id="pw" aria-label="Password" placeholder="Password" autocomplete="current-password">
+    <button class="btn pri" type="submit">Enter</button>
+    <p class="muted bad" id="pw-msg" role="status"></p>
+  </form>
+</div>
+
+<div class="wrap" id="app" hidden>
+  <nav class="sitebar no-print" aria-label="Site"><a href="index.html" class="sb-brand"><img src="../logo.svg" alt="" width="26" height="26">Closed Circuit</a><span class="sb-links"><a href="tools.html">Free tools</a><a href="broadcast.html">Broadcast systems</a><a class="btn pri sm" href="https://wa.me/96170368646?text=Hi%2C%20I%20need%20help%20with%20cabling%20and%20patch%20design%20for%20a%20project" target="_blank" rel="noopener" id="sb-wa">Need help with your project?</a></span></nav>
+  <header class="top">
+    <div><h1>Connector & Patch Calculator</h1><p class="muted">Every port on a patch panel runs Device → Termination panel → Patch panel: 2 cables, 4 connectors and 4 boots per port.</p></div>
+    <div class="row no-print">
+      <select id="proj-list" aria-label="Saved projects" style="width:auto"></select>
+      <button class="btn" id="b-new" type="button">New project</button>
+      <button class="btn ghost" id="b-dup" type="button">Duplicate</button>
+      <button class="btn ghost" id="b-del" type="button">Delete</button>
+    </div>
+  </header>
+
+  <section class="panel">
+    <h2><span class="step">1</span>Project</h2>
+    <div class="row">
+      <label class="f" style="flex:2 1 220px">Project name<input id="p-name"></label>
+      <label class="f" style="flex:0 1 120px">Spare %<input id="p-spare" type="number" min="0" max="100" step="1"></label>
+      <label class="f" style="flex:0 1 160px">Termination → patch length (m)<input id="p-len2" type="number" min="0" step="0.5"></label>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2><span class="step">2</span>Patch panels</h2>
+    <p class="muted">Add every patch panel first. The connectors at the device, at the termination panel (both sides) and at the patch rear are counted from here for every port wired to it.</p>
+    <div class="tbl-wrap"><table class="pp-table">
+      <thead><tr><th>Name</th><th>Signal</th><th>Jacks</th><th>Device connector</th><th>Termination connector</th><th>Patch rear connector</th><th>Cable device → term</th><th>Cable term → patch</th><th></th></tr></thead>
+      <tbody id="pp-body"></tbody>
+    </table></div>
+    <div class="row no-print"><button class="btn" id="b-add-pp" type="button">+ Add patch panel</button></div>
+  </section>
+
+  <section class="panel">
+    <h2><span class="step">3</span>Equipment</h2>
+    <p class="muted">For each device: its ports, and which patch panel each port lands on, or "Direct" if it skips the patch.</p>
+    <div id="devs" style="display:grid;gap:12px"></div>
+    <div class="row no-print"><button class="btn" id="b-add-dev" type="button">+ Add device</button></div>
+  </section>
+
+  <section class="panel" id="results">
+    <div class="top"><h2><span class="step">4</span>Bill of materials</h2>
+      <div class="row no-print"><button class="btn" id="b-copy" type="button">Copy BOM</button><button class="btn" id="b-print" type="button">Print / PDF</button><button class="btn ghost" id="b-export" type="button">Export file</button><label class="btn ghost" for="imp" style="cursor:pointer">Import file</label><input type="file" id="imp" accept=".json,application/json" hidden></div></div>
+    <p class="muted" id="r-title"></p>
+    <div class="kpis" id="kpis"></div>
+    <div class="res-grid">
+      <div class="res"><h3>Connectors <span id="t-conn"></span></h3><table id="r-conn"></table></div>
+      <div class="res"><h3>Boots <span id="t-boot"></span></h3><table id="r-boot"></table></div>
+      <div class="res"><h3>Cable</h3><table id="r-cable"></table></div>
+      <div class="res"><h3>Patch & termination</h3><table id="r-pp"></table></div>
+    </div>
+    <p class="muted" id="r-note"></p>
+  </section>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(() => {
+  // SHA-256 of the password (hex). Set by the owner; the password itself is never stored here.
+  const PASS_HASH = "";
+  const $ = s => document.querySelector(s);
+  const KEY = "cc_patch_calc_en_v1";
+  const SIG = {
+    sdi:{n:"SDI video", dev:"BNC", tp:"BNC", pp:"BNC", c1:"Belden 1694A", c2:"Belden 1855A", color:"Yellow"},
+    ref:{n:"REF / Sync", dev:"BNC", tp:"BNC", pp:"BNC", c1:"Belden 1694A", c2:"Belden 1855A", color:"White"},
+    aes:{n:"AES audio", dev:"XLR", tp:"BNC", pp:"BNC", c1:"AES 110Ω", c2:"Belden 1855A", color:"Blue"},
+    aud:{n:"Analog audio", dev:"XLR", tp:"XLR", pp:"Bantam TT", c1:"Audio pair", c2:"Audio pair", color:"Green"},
+    eth:{n:"Ethernet", dev:"RJ45", tp:"RJ45 Keystone", pp:"RJ45 Keystone", c1:"CAT6", c2:"CAT6", color:"Grey"},
+    fib:{n:"Fiber", dev:"LC", tp:"LC", pp:"LC", c1:"Fiber SM duplex", c2:"Fiber SM duplex", color:"Blue"},
+    tc:{n:"Timecode / LTC", dev:"BNC", tp:"BNC", pp:"BNC", c1:"Belden 1694A", c2:"Belden 1855A", color:"Violet"}
+  };
+  const CONNS = ["BNC","DIN 1.0/2.3","HD-BNC","Mini-BNC","XLR","Bantam TT","Jack 6.35 TRS","DB25","IDC / Krone","Phoenix","RJ45","RJ45 Keystone","LC","SC","ST","Opticalcon"];
+  const BOOTABLE = new Set(["BNC","DIN 1.0/2.3","HD-BNC","Mini-BNC","RJ45","RJ45 Keystone"]);
+  const COLORS = {"Red":"#ef4444","Green":"#22c55e","Blue":"#3b82f6","Yellow":"#eab308","White":"#f1f5f9","Black":"#111827","Grey":"#9ca3af","Orange":"#f97316","Violet":"#a855f7","Brown":"#92400e","Pink":"#ec4899"};
+  const uid = () => Math.random().toString(36).slice(2,9);
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const num = (v, d=0) => { const n = parseFloat(v); return isFinite(n) && n >= 0 ? n : d; };
+  let toastT; const toast = m => { const t = $("#toast"); t.textContent = m; t.classList.add("on"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("on"), 1800); };
+
+  function sample(){
+    const p1 = {id:uid(), name:"Video Patch 1", sig:"sdi", jacks:64, ...pick(SIG.sdi)};
+    const p2 = {id:uid(), name:"Audio Patch 1", sig:"aud", jacks:96, ...pick(SIG.aud)};
+    return {id:uid(), name:"Example: news studio", spare:10, len2:2, panels:[p1,p2], devices:[
+      {id:uid(), name:"Studio camera (CCU)", qty:3, ports:[
+        {id:uid(), label:"SDI out", panel:p1.id, count:2, len:15, color:"Yellow"},
+        {id:uid(), label:"Return in", panel:p1.id, count:1, len:15, color:"Red"},
+        {id:uid(), label:"REF in", panel:"direct", count:1, len:5, color:"White", conn:"BNC", cable:"Belden 1694A"}]},
+      {id:uid(), name:"Video Switcher", qty:1, ports:[
+        {id:uid(), label:"SDI in", panel:p1.id, count:12, len:8, color:"Yellow"},
+        {id:uid(), label:"SDI out", panel:p1.id, count:8, len:8, color:"Red"}]},
+      {id:uid(), name:"Audio mixer", qty:1, ports:[
+        {id:uid(), label:"Mic/Line in", panel:p2.id, count:16, len:10, color:"Green"},
+        {id:uid(), label:"Line out", panel:p2.id, count:8, len:10, color:"Blue"}]}
+    ]};
+  }
+  function pick(s){ return {dev:s.dev, tp:s.tp, pp:s.pp, c1:s.c1, c2:s.c2}; }
+
+  // storage
+  let store = {current:null, projects:{}};
+  try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s && s.projects) store = s; } catch {}
+  if (!store.current || !store.projects[store.current]){ const p = sample(); store.projects[p.id] = p; store.current = p.id; }
+  const P = () => store.projects[store.current];
+  let saveT; const save = () => { clearTimeout(saveT); saveT = setTimeout(() => { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch {} }, 300); };
+
+  // lock
+  async function sha(t){ const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(t)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2,"0")).join(""); }
+  function unlock(){ $("#lock").hidden = true; $("#app").hidden = false; renderAll(); }
+  let ok = false; try { ok = sessionStorage.getItem("cc_pc_ok") === PASS_HASH && !!PASS_HASH; } catch {}
+  if (!PASS_HASH) ok = true;
+  $("#lock-form").addEventListener("submit", async e => {
+    e.preventDefault(); if (!PASS_HASH) return;
+    if (await sha($("#pw").value) === PASS_HASH){ try { sessionStorage.setItem("cc_pc_ok", PASS_HASH); } catch {} unlock(); }
+    else { $("#pw-msg").textContent = "Wrong password."; $("#pw").select(); }
+  });
+
+  // render: project
+  function renderProject(){
+    const p = P();
+    $("#proj-list").innerHTML = Object.values(store.projects).map(x => `<option value="${x.id}" ${x.id === p.id ? "selected" : ""}>${esc(x.name || "Untitled")}</option>`).join("");
+    $("#p-name").value = p.name; $("#p-spare").value = p.spare; $("#p-len2").value = p.len2;
+  }
+  $("#p-name").addEventListener("input", e => { P().name = e.target.value; save(); renderResults(); $("#proj-list").selectedOptions[0].textContent = e.target.value || "Untitled"; });
+  $("#p-spare").addEventListener("input", e => { P().spare = num(e.target.value, 0); save(); renderResults(); });
+  $("#p-len2").addEventListener("input", e => { P().len2 = num(e.target.value, 0); save(); renderResults(); });
+  $("#proj-list").addEventListener("change", e => { store.current = e.target.value; save(); renderAll(); });
+  $("#b-new").addEventListener("click", () => { const p = {id:uid(), name:"New project", spare:10, len2:2, panels:[], devices:[]}; store.projects[p.id] = p; store.current = p.id; save(); renderAll(); toast("New project"); });
+  $("#b-dup").addEventListener("click", () => { const p = JSON.parse(JSON.stringify(P())); p.id = uid(); p.name += " (copy)"; store.projects[p.id] = p; store.current = p.id; save(); renderAll(); toast("Duplicated"); });
+  $("#b-del").addEventListener("click", e => {
+    const b = e.currentTarget;
+    if (b.dataset.armed !== "1"){ b.dataset.armed = "1"; b.textContent = "Sure? Click again"; setTimeout(() => { b.dataset.armed = ""; b.textContent = "Delete"; }, 3000); return; }
+    delete store.projects[store.current]; const ids = Object.keys(store.projects);
+    if (!ids.length){ const p = {id:uid(), name:"New project", spare:10, len2:2, panels:[], devices:[]}; store.projects[p.id] = p; ids.push(p.id); }
+    store.current = ids[0]; b.dataset.armed = ""; b.textContent = "Delete"; save(); renderAll(); toast("Deleted");
+  });
+
+  // render: panels
+  const opt = (list, v) => list.map(x => `<option ${x === v ? "selected" : ""}>${esc(x)}</option>`).join("");
+  function renderPanels(){
+    const p = P();
+    $("#pp-body").innerHTML = p.panels.length ? p.panels.map(pp => `<tr data-id="${pp.id}">
+      <td><input data-k="name" value="${esc(pp.name)}" aria-label="Patch name"></td>
+      <td><select data-k="sig" aria-label="Signal">${Object.entries(SIG).map(([k,s]) => `<option value="${k}" ${k === pp.sig ? "selected" : ""}>${s.n}</option>`).join("")}</select></td>
+      <td><input data-k="jacks" type="number" min="1" step="1" value="${pp.jacks}" aria-label="Jacks"></td>
+      <td><select data-k="dev" aria-label="Device connector">${opt(CONNS, pp.dev)}</select></td>
+      <td><select data-k="tp" aria-label="Termination connector">${opt(CONNS, pp.tp)}</select></td>
+      <td><select data-k="pp" aria-label="Patch rear connector">${opt(CONNS, pp.pp)}</select></td>
+      <td><input data-k="c1" value="${esc(pp.c1)}" aria-label="Cable device to termination"></td>
+      <td><input data-k="c2" value="${esc(pp.c2)}" aria-label="Cable termination to patch"></td>
+      <td><button class="btn del" data-del type="button" aria-label="Delete">✕</button></td></tr>`).join("")
+      : `<tr><td colspan="9" class="muted" style="padding:14px">No patch panels yet. Click "Add patch panel".</td></tr>`;
+  }
+  $("#pp-body").addEventListener("input", e => {
+    const tr = e.target.closest("tr[data-id]"); if (!tr) return;
+    const pp = P().panels.find(x => x.id === tr.dataset.id), k = e.target.dataset.k;
+    if (k === "jacks") pp.jacks = Math.round(num(e.target.value, 0)); else pp[k] = e.target.value;
+    if (k === "sig"){ Object.assign(pp, pick(SIG[pp.sig])); renderPanels(); }
+    save(); renderDevices(); renderResults();
+  });
+  $("#pp-body").addEventListener("click", e => {
+    if (!e.target.closest("[data-del]")) return;
+    const id = e.target.closest("tr").dataset.id, p = P();
+    p.panels = p.panels.filter(x => x.id !== id);
+    p.devices.forEach(d => d.ports.forEach(pt => { if (pt.panel === id) pt.panel = "direct"; }));
+    save(); renderPanels(); renderDevices(); renderResults();
+  });
+  $("#b-add-pp").addEventListener("click", () => {
+    const p = P(); p.panels.push({id:uid(), name:"Patch " + (p.panels.length + 1), sig:"sdi", jacks:64, ...pick(SIG.sdi)});
+    save(); renderPanels(); renderDevices(); renderResults();
+  });
+
+  // render: devices
+  function renderDevices(){
+    const p = P();
+    const panelOpts = v => p.panels.map(pp => `<option value="${pp.id}" ${pp.id === v ? "selected" : ""}>${esc(pp.name)} · ${SIG[pp.sig].n}</option>`).join("") + `<option value="direct" ${v === "direct" ? "selected" : ""}>Direct (no patch)</option>`;
+    $("#devs").innerHTML = p.devices.length ? p.devices.map(d => `<div class="dev" data-dev="${d.id}">
+      <div class="dev-head">
+        <label class="f">Device<input data-dk="name" value="${esc(d.name)}"></label>
+        <label class="f">Qty<input data-dk="qty" type="number" min="1" step="1" value="${d.qty}"></label>
+        <button class="btn del" data-ddel type="button">Remove device</button>
+      </div>
+      <div class="tbl-wrap"><table class="ports"><thead><tr><th>Port</th><th>Lands on</th><th>Count</th><th>Device → term (m)</th><th>Boot colour</th><th>Path</th><th></th></tr></thead><tbody>
+      ${d.ports.map(pt => { const pp = p.panels.find(x => x.id === pt.panel), direct = !pp;
+        return `<tr data-port="${pt.id}">
+        <td><input data-pk="label" value="${esc(pt.label)}" aria-label="Port name"></td>
+        <td><select data-pk="panel" aria-label="Lands on">${panelOpts(pt.panel)}</select>${direct ? `<div class="row" style="margin-top:4px;flex-wrap:nowrap"><select data-pk="conn" aria-label="Connector" style="width:auto">${opt(CONNS, pt.conn || "BNC")}</select><input data-pk="cable" value="${esc(pt.cable || "Belden 1694A")}" aria-label="Cable"></div>` : ""}</td>
+        <td><input data-pk="count" type="number" min="0" step="1" value="${pt.count}"></td>
+        <td><input data-pk="len" type="number" min="0" step="0.5" value="${pt.len}"></td>
+        <td><select data-pk="color" aria-label="Boot colour" style="width:auto">${Object.keys(COLORS).map(c => `<option ${c === pt.color ? "selected" : ""}>${c}</option>`).join("")}</select> <span class="dot" style="background:${COLORS[pt.color] || "#888"}"></span></td>
+        <td><div class="chain">${direct ? `Device <b>${esc(pt.conn || "BNC")}</b> → <b>${esc(pt.conn || "BNC")}</b> Device` : `Device <b>${esc(pp.dev)}</b>→<b>${esc(pp.tp)}</b> TERM <b>${esc(pp.tp)}</b>→<b>${esc(pp.pp)}</b> PATCH`}</div></td>
+        <td><button class="btn del" data-pdel type="button" aria-label="Remove port">✕</button></td></tr>`; }).join("")}
+      </tbody></table></div>
+      <div class="row no-print"><button class="btn sm" data-padd type="button">+ Add port</button></div></div>`).join("")
+      : `<p class="muted">No equipment yet. Click "Add device".</p>`;
+  }
+  const findDev = el => P().devices.find(d => d.id === el.closest("[data-dev]").dataset.dev);
+  $("#devs").addEventListener("input", e => {
+    const t = e.target, d = findDev(t);
+    if (t.dataset.dk){ d[t.dataset.dk] = t.dataset.dk === "qty" ? Math.max(1, Math.round(num(t.value, 1))) : t.value; save(); renderResults(); return; }
+    if (t.dataset.pk){
+      const pt = d.ports.find(x => x.id === t.closest("[data-port]").dataset.port), k = t.dataset.pk;
+      pt[k] = k === "count" ? Math.round(num(t.value, 0)) : k === "len" ? num(t.value, 0) : t.value;
+      save();
+      if (k === "panel" || k === "color" || k === "conn"){ renderDevices(); }
+      renderResults();
+    }
+  });
+  $("#devs").addEventListener("click", e => {
+    const t = e.target; if (!t.closest("[data-dev]")) return;
+    const d = findDev(t), p = P();
+    if (t.closest("[data-ddel]")) p.devices = p.devices.filter(x => x !== d);
+    else if (t.closest("[data-pdel]")) d.ports = d.ports.filter(x => x.id !== t.closest("[data-port]").dataset.port);
+    else if (t.closest("[data-padd]")) { const pp = p.panels[0]; d.ports.push({id:uid(), label:"Port", panel:pp ? pp.id : "direct", count:1, len:10, color:pp ? SIG[pp.sig].color : "Yellow", conn:"BNC", cable:"Belden 1694A"}); }
+    else return;
+    save(); renderDevices(); renderResults();
+  });
+  $("#b-add-dev").addEventListener("click", () => {
+    const p = P(), pp = p.panels[0];
+    p.devices.push({id:uid(), name:"Device " + (p.devices.length + 1), qty:1, ports:[{id:uid(), label:"SDI out", panel:pp ? pp.id : "direct", count:1, len:10, color:pp ? SIG[pp.sig].color : "Yellow", conn:"BNC", cable:"Belden 1694A"}]});
+    save(); renderDevices(); renderResults();
+  });
+
+  // calculation
+  function calc(p){
+    const conn = {}, boot = {}, cable = {}, used = {}, add = (o,k,n) => o[k] = (o[k] || 0) + n;
+    let cables = 0, patched = 0, direct = 0;
+    p.devices.forEach(d => d.ports.forEach(pt => {
+      const n = (pt.count || 0) * (d.qty || 1); if (!n) return;
+      const pp = p.panels.find(x => x.id === pt.panel);
+      if (pp){
+        patched += n; cables += 2 * n; add(used, pp.id, n);
+        add(conn, pp.dev, n); add(conn, pp.tp, 2 * n); add(conn, pp.pp, n);
+        const b = (BOOTABLE.has(pp.dev) ? 1 : 0) + (BOOTABLE.has(pp.tp) ? 2 : 0) + (BOOTABLE.has(pp.pp) ? 1 : 0);
+        if (b) add(boot, pt.color, b * n);
+        add(cable, pp.c1 || "Cable", n * (pt.len || 0)); add(cable, pp.c2 || "Cable", n * (p.len2 || 0));
+      } else {
+        const c = pt.conn || "BNC"; direct += n; cables += n;
+        add(conn, c, 2 * n); if (BOOTABLE.has(c)) add(boot, pt.color, 2 * n);
+        add(cable, pt.cable || "Cable", n * (pt.len || 0));
+      }
+    }));
+    return {conn, boot, cable, used, cables, patched, direct};
+  }
+  const withSpare = (v, s) => Math.ceil(v * (1 + s / 100));
+  function renderResults(){
+    const p = P(), r = calc(p), s = p.spare || 0;
+    $("#r-title").textContent = `${p.name || "Untitled"} · Quantities include ${s}% spare; the figure without spare is in brackets.`;
+    const sum = o => Object.values(o).reduce((a,b) => a + b, 0);
+    const totConn = Object.values(r.conn).reduce((a,v) => a + withSpare(v, s), 0), totBoot = Object.values(r.boot).reduce((a,v) => a + withSpare(v, s), 0);
+    $("#kpis").innerHTML = [[r.patched,"ports on patch"],[r.direct,"direct links"],[r.cables,"cable runs"],[totConn,"connectors incl. spare"],[totBoot,"boots incl. spare"]]
+      .map(([v,l]) => `<div class="kpi"><b>${v.toLocaleString("en-US")}</b><span>${l}</span></div>`).join("");
+    const rows = (o, fmt) => Object.keys(o).length ? `<tr><th>Type</th><th>Qty</th></tr>` + Object.entries(o).sort((a,b) => b[1] - a[1]).map(([k,v]) => `<tr><td>${fmt ? fmt(k) : esc(k)}</td><td>${withSpare(v, s).toLocaleString("en-US")} <span class="muted">(${Math.round(v).toLocaleString("en-US")})</span></td></tr>`).join("") : `<tr><td class="muted">Nothing yet</td></tr>`;
+    $("#r-conn").innerHTML = rows(r.conn); $("#t-conn").textContent = totConn.toLocaleString("en-US");
+    $("#r-boot").innerHTML = rows(r.boot, k => `<span class="dot" style="background:${COLORS[k] || "#888"}"></span>${esc(k)}`); $("#t-boot").textContent = totBoot.toLocaleString("en-US");
+    $("#r-cable").innerHTML = Object.keys(r.cable).length ? `<tr><th>Cable</th><th>Metres</th></tr>` + Object.entries(r.cable).map(([k,v]) => `<tr><td>${esc(k)}</td><td>${withSpare(v, s).toLocaleString("en-US")} m <span class="muted">(${Math.round(v)})</span></td></tr>`).join("") : `<tr><td class="muted">Nothing yet</td></tr>`;
+    $("#r-pp").innerHTML = p.panels.length ? `<tr><th>Patch</th><th>Used / total</th></tr>` + p.panels.map(pp => { const u = r.used[pp.id] || 0, j = pp.jacks || 0, cls = u > j ? "bad" : u > j * .85 ? "warn" : "ok";
+      return `<tr><td>${esc(pp.name)}<br><span class="tag">Term: ${u} × ${esc(pp.tp)}</span></td><td class="${cls}">${u} / ${j}${u > j ? "<br>Not enough" : j - u ? `<br><span class="muted">${j - u} free</span>` : ""}</td></tr>`; }).join("") : `<tr><td class="muted">No patch panels</td></tr>`;
+    $("#r-note").textContent = "Boots are counted only for connectors that take one (BNC, DIN 1.0/2.3, HD-BNC, Mini-BNC, RJ45). Every patched port needs a matching port on the termination panel.";
+  }
+  function bomText(){
+    const p = P(), r = calc(p), s = p.spare || 0, L = [];
+    L.push(`${p.name} — BOM (spare ${s}%)`, "", "Connectors:"); Object.entries(r.conn).forEach(([k,v]) => L.push(`- ${k}: ${withSpare(v,s)}`));
+    L.push("", "Boots:"); Object.entries(r.boot).forEach(([k,v]) => L.push(`- ${k}: ${withSpare(v,s)}`));
+    L.push("", "Cable:"); Object.entries(r.cable).forEach(([k,v]) => L.push(`- ${k}: ${withSpare(v,s)} m`));
+    L.push("", "Patch / Termination:"); p.panels.forEach(pp => L.push(`- ${pp.name}: ${r.used[pp.id] || 0} / ${pp.jacks}`));
+    return L.join("\n");
+  }
+  $("#b-copy").addEventListener("click", async () => { try { await navigator.clipboard.writeText(bomText()); toast("BOM copied ✓"); } catch { toast("Copy failed"); } });
+  $("#b-print").addEventListener("click", () => window.print());
+  $("#b-export").addEventListener("click", () => {
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(P(), null, 2)], {type:"application/json"}));
+    a.download = (P().name || "project").replace(/[^\w -]+/g, "_") + ".json"; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
+  $("#imp").addEventListener("change", async e => {
+    const f = e.target.files[0]; if (!f) return;
+    try { const p = JSON.parse(await f.text()); if (!p || !Array.isArray(p.panels) || !Array.isArray(p.devices)) throw 0; p.id = uid(); store.projects[p.id] = p; store.current = p.id; save(); renderAll(); toast("Imported ✓"); }
+    catch { toast("That file is not a project from this calculator"); }
+    e.target.value = "";
+  });
+
+  function renderAll(){ renderProject(); renderPanels(); renderDevices(); renderResults(); }
+  const tr = (n, p) => { if (typeof gtag === "function") gtag("event", n, p || {}); };
+  let used = false; $("#app").addEventListener("input", () => { if (!used){ used = true; tr("patchcalc_used"); } });
+  ["#b-copy","#b-print","#b-export"].forEach(s => $(s).addEventListener("click", () => tr("patchcalc_" + s.slice(3))));
+  $("#sb-wa").addEventListener("click", () => tr("whatsapp_click", {page:"patch-calc"}));
+  if (ok) unlock();
+})();
+</script>
+</body>
+</html>
