@@ -116,25 +116,23 @@ td{padding:5px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
   <section class="panel" id="dxf">
     <div class="top"><h2><span class="step">⚡</span>Import from AutoCAD (DXF)</h2>
       <div class="row no-print"><label class="btn pri" for="dxf-file" style="cursor:pointer">Choose DXF file</label><input type="file" id="dxf-file" accept=".dxf" hidden></div></div>
-    <p class="muted">In AutoCAD: <b>Save As → DXF</b>. The file is read in your browser and is not uploaded anywhere. The calculator reads cable numbers written on the lines (e.g. D04109) and termination points (e.g. A/11 or 2/14), then applies Device → Termination (I-BNC) → Patch.</p>
+    <p class="muted">In AutoCAD: <b>Save As → DXF</b>. The file is read in your browser and is not uploaded anywhere. The calculator reads the cable numbers written on the lines: <span class="tag">D 04 1 09</span> = type, location, patch number, jack. Jack 01–26 is a patch input, 51–76 a patch output. Patch code 9x means the cable goes straight to the device with no patch. Every coax cable to a patch runs Device → Termination (I-BNC) → Patch.</p>
     <div id="dxf-out" hidden>
       <p class="muted" id="dxf-title"></p>
       <h3 style="font-size:.95rem">Cable types found <span class="muted" style="font-weight:400">(check the meaning of each prefix)</span></h3>
       <div class="tbl-wrap"><table id="dxf-map"></table></div>
       <div class="row"><label class="f" style="flex:0 1 220px">Jumper cable term → patch<input id="dxf-jcable" value="Belden 1855A"></label>
         <label class="f" style="flex:0 1 200px">Jumper length (m)<input id="dxf-jlen" type="number" min="0" step="0.5" value="2"></label>
-        <label class="f" style="flex:0 1 120px">Spare %<input id="dxf-spare" type="number" min="0" max="100" step="1" value="10"></label>
-        <label class="f" style="flex:0 1 170px">Positions per patch panel<input id="dxf-ppsize" type="number" min="1" step="1" value="24"></label>
-        <label class="f" style="flex:0 1 190px">Positions per termination panel<input id="dxf-tpsize" type="number" min="1" step="1" value="48"></label></div>
+        <label class="f" style="flex:0 1 120px">Spare %<input id="dxf-spare" type="number" min="0" max="100" step="1" value="10"></label>        <label class="f" style="flex:0 1 190px">Positions per termination panel<input id="dxf-tpsize" type="number" min="1" step="1" value="48"></label></div>
       <div class="kpis" id="dxf-kpis"></div>
       <div class="res-grid">
         <div class="res"><h3>Connectors & boots</h3><table id="dxf-conn"></table></div>
-        <div class="res"><h3>Termination panels</h3><table id="dxf-tp"></table></div>
+        <div class="res"><h3>Patch & termination</h3><div class="tbl-wrap" style="max-height:420px;overflow-y:auto"><table id="dxf-tp"></table></div></div>
         <div class="res"><h3>Cable</h3><table id="dxf-cable"></table></div>
         <div class="res"><h3>Blocks in the drawing</h3><div class="tbl-wrap" style="max-height:320px;overflow-y:auto"><table id="dxf-blocks"></table></div></div>
       </div>
       <div class="row no-print"><button class="btn" id="dxf-copy" type="button">Copy BOM</button><button class="btn" id="dxf-csv" type="button">Download CSV</button></div>
-      <p class="muted">Cable metres are not read from the drawing: schematics are not to scale. Lengths come from the room layout. Every termination point is one female-female I-BNC plus one jumper to the patch with two crimp BNC.</p>
+      <p class="muted">Cable metres are not read from the drawing: schematics are not to scale. Lengths come from the room layout. Every coax cable to a patch adds one female-female I-BNC on the termination panel plus one jumper to the patch with two crimp BNC. Termination panels are counted per location.</p>
     </div>
   </section>
 
@@ -437,30 +435,48 @@ td{padding:5px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
   }
   function dxfCalc(){
     const s = num($("#dxf-spare").value, 0), jl = num($("#dxf-jlen").value, 0), jc = $("#dxf-jcable").value.trim() || "Jumper cable";
-    const by = {}; Object.keys(dxf.cables).forEach(k => by[k[0]] = (by[k[0]] || 0) + 1);
-    const conn = {}, boot = {n:0}, cable = {}, add = (o,k,n) => o[k] = (o[k] || 0) + n;
-    Object.entries(by).forEach(([p, n]) => { const m = dxf.map[p]; if (!m.use) return; add(conn, m.conn + (m.conn === "BNC" ? " crimp (male)" : ""), 2 * n); if (BOOTABLE.has(m.conn)) boot.n += 2 * n; add(cable, m.cable + " (runs)", n); });
-    const tpn = Object.values(dxf.tp).reduce((a, v) => a + v.size, 0);
-    if (tpn){ add(conn, "BNC crimp (male)", 2 * tpn); boot.n += 2 * tpn; add(conn, "I-BNC feed-through (female-female)", tpn); add(cable, jc + " (m)", tpn * jl); add(cable, jc + " (jumpers)", tpn); }
-    const pps = Math.max(1, Math.round(num($("#dxf-ppsize").value, 24))), tps = Math.max(1, Math.round(num($("#dxf-tpsize").value, 24)));
-    const panels = Object.keys(dxf.tp).sort().map(a => { const pts = dxf.tp[a].size, hi = Math.max(...dxf.tp[a]), need = Math.max(pts, hi);
-      return {a, pts, hi, tp:Math.ceil(need / tps), pp:Math.ceil(need / pps)}; });
-    const ppTotal = panels.reduce((x, p) => x + p.pp, 0), tpTotal = panels.reduce((x, p) => x + p.tp, 0);
-    return {by, conn, boot:boot.n, cable, tpn, s, panels, ppTotal, tpTotal, pps, tps};
+    // Cable number = TYPE + LOCATION(2) + PATCH(1-2) + JACK(2). Jack 01-26 = patch input, 51-76 = patch output.
+    // Patch code 9x = no patch, the cable goes straight to the device.
+    const tps = Math.max(1, Math.round(num($("#dxf-tpsize").value, 48)));
+    const COAX = new Set(["BNC","DIN 1.0/2.3","HD-BNC","Mini-BNC"]);
+    const by = {}, conn = {}, cable = {}, patches = {}, locTP = {}, bad = [], add = (o,k,n) => o[k] = (o[k] || 0) + n;
+    let boots = 0, nDirect = 0, nPatched = 0, nTP = 0;
+    const lbl = c => c + (c === "BNC" ? " crimp (male)" : "");
+    const run = (m, n) => { add(conn, lbl(m.conn), 2 * n); if (BOOTABLE.has(m.conn)) boots += 2 * n; add(cable, m.cable + " (runs)", n); };
+    Object.keys(dxf.cables).forEach(k => {
+      const p = k[0], m = dxf.map[p]; by[p] = (by[p] || 0) + 1; if (!m.use) return;
+      const loc = k.slice(1,3), mid = k.slice(3,-2), j = +k.slice(-2);
+      if (mid.length === 2 && mid[0] === "9"){ nDirect++; run(m, 1); return; }
+      if (!(j >= 1 && j <= 26) && !(j >= 51 && j <= 76)){ bad.push(k); run(m, 1); return; }
+      nPatched++; run(m, 1);
+      const key = (COAX.has(m.conn) ? "Video" : m.conn) + " · loc " + loc + " · patch " + mid;
+      const pt = patches[key] = patches[key] || {inn:new Set(), out:new Set()}; (j <= 26 ? pt.inn : pt.out).add(j);
+      if (COAX.has(m.conn)){
+        nTP++; add(locTP, loc, 1);
+        add(conn, lbl(m.conn), 2); if (BOOTABLE.has(m.conn)) boots += 2;
+        add(conn, (m.conn === "BNC" ? "I-BNC" : m.conn) + " feed-through (female-female)", 1);
+        add(cable, jc + " (jumpers)", 1); add(cable, jc + " (m)", jl);
+      }
+    });
+    const tpPanels = Object.keys(locTP).sort().map(l => ({loc:l, n:locTP[l], panels:Math.ceil(locTP[l] / tps)}));
+    const tpTotal = tpPanels.reduce((x, p) => x + p.panels, 0), ppTotal = Object.keys(patches).length;
+    return {by, conn, boot:boots, cable, s, patches, tpPanels, tpTotal, ppTotal, tps, nDirect, nPatched, nTP, bad};
   }
   function renderDxf(){
     if (!dxf) return;
     $("#dxf-out").hidden = false;
     const r = dxfCalc(), s = r.s, sp = v => withSpare(v, s);
-    $("#dxf-title").textContent = `${dxf.file} · ${Object.keys(dxf.cables).length} numbered cables · ${r.tpn} termination points · quantities include ${s}% spare (without spare in brackets)`;
+    $("#dxf-title").textContent = `${dxf.file} · ${Object.keys(dxf.cables).length} numbered cables · ${r.nPatched} to patch, ${r.nDirect} direct (patch code 9x) · quantities include ${s}% spare (without spare in brackets)` + (r.bad.length ? ` · ${r.bad.length} number(s) with an unexpected jack, counted as direct: ${r.bad.join(", ")}` : "");
     $("#dxf-map").innerHTML = `<tr><th>Prefix</th><th>Cables</th><th>Signal</th><th>Connector</th><th>Cable</th><th>Count</th></tr>` + Object.keys(r.by).sort().map(p => { const m = dxf.map[p];
       return `<tr data-p="${esc(p)}"><td><span class="tag">${esc(p)}…</span></td><td class="n">${r.by[p]}</td><td><input data-m="sig" value="${esc(m.sig)}" aria-label="Signal for ${esc(p)}"></td><td><select data-m="conn" aria-label="Connector for ${esc(p)}">${opt(CONNS, m.conn)}</select></td><td><input data-m="cable" value="${esc(m.cable)}" aria-label="Cable for ${esc(p)}"></td><td><input data-m="use" type="checkbox" ${m.use ? "checked" : ""} aria-label="Count ${esc(p)}" style="width:auto"></td></tr>`; }).join("");
     const totConn = Object.entries(r.conn).filter(([k]) => !/I-BNC/.test(k)).reduce((a, [,v]) => a + sp(v), 0);
-    $("#dxf-kpis").innerHTML = [[Object.values(r.by).reduce((a,b) => a + b, 0),"cable runs"],[r.tpn,"termination points"],[r.ppTotal,`patch panels (${r.pps}-way)`],[r.tpTotal,`termination panels (${r.tps}-way)`],[totConn,"crimp connectors"],[sp(r.boot),"boots"]].map(([v,l]) => `<div class="kpi"><b>${v.toLocaleString("en-US")}</b><span>${l}</span></div>`).join("");
+    $("#dxf-kpis").innerHTML = [[r.nPatched,"cables to patch"],[r.nDirect,"direct cables (9x)"],[r.ppTotal,"patch panels"],[r.nTP,"termination points"],[r.tpTotal,`termination panels (${r.tps}-way)`],[totConn,"crimp connectors"],[sp(r.boot),"boots"]].map(([v,l]) => `<div class="kpi"><b>${v.toLocaleString("en-US")}</b><span>${l}</span></div>`).join("");
     const rows = o => `<tr><th>Item</th><th>Qty</th></tr>` + Object.entries(o).map(([k,v]) => `<tr><td>${esc(k)}</td><td>${sp(v).toLocaleString("en-US")} <span class="muted">(${Math.round(v)})</span></td></tr>`).join("");
     $("#dxf-conn").innerHTML = rows({...r.conn, "Boots": r.boot});
     $("#dxf-cable").innerHTML = rows(r.cable);
-    $("#dxf-tp").innerHTML = r.panels.length ? `<tr><th>Group</th><th>Points</th><th>Highest</th><th>Term panels</th><th>Patch panels</th></tr>` + r.panels.map(p => `<tr><td>${esc(p.a)}</td><td class="n">${p.pts}</td><td class="n">${esc(p.a)}/${p.hi}</td><td class="n">${p.tp}</td><td class="n">${p.pp}</td></tr>`).join("") + `<tr><td><b>Total</b></td><td class="n"><b>${r.tpn}</b></td><td></td><td class="n"><b>${r.tpTotal}</b></td><td class="n"><b>${r.ppTotal}</b></td></tr>` : `<tr><td class="muted">No labels like A/11 found</td></tr>`;
+    const pk = Object.keys(r.patches).sort((a,b) => a.localeCompare(b, "en", {numeric:true}));
+    $("#dxf-tp").innerHTML = (pk.length ? `<tr><th>Patch panel</th><th>In used</th><th>Out used</th></tr>` + pk.map(k => `<tr><td>${esc(k)}</td><td class="n">${r.patches[k].inn.size}</td><td class="n">${r.patches[k].out.size}</td></tr>`).join("") : `<tr><td class="muted">No patch numbers found</td></tr>`)
+      + (r.tpPanels.length ? `<tr><th>Termination</th><th>Points</th><th>Panels</th></tr>` + r.tpPanels.map(p => `<tr><td>loc ${esc(p.loc)}</td><td class="n">${p.n}</td><td class="n">${p.panels}</td></tr>`).join("") : "");
     $("#dxf-blocks").innerHTML = `<tr><th>Block</th><th>Qty</th></tr>` + Object.entries(dxf.blocks).sort((a,b) => b[1] - a[1]).map(([k,v]) => `<tr><td>${esc(k)}</td><td>${v}</td></tr>`).join("");
   }
   function dxfRows(){
@@ -468,9 +484,11 @@ td{padding:5px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
     Object.entries(r.by).forEach(([p,n]) => { const m = dxf.map[p]; if (m.use) out.push([`Cable runs ${p}… ${m.sig}`, n, n]); });
     Object.entries({...r.conn, "Boots": r.boot}).forEach(([k,v]) => out.push([k, sp(v), Math.round(v)]));
     Object.entries(r.cable).forEach(([k,v]) => out.push([k, sp(v), Math.round(v)]));
-    r.panels.forEach(p => out.push([`Group ${p.a}: ${p.pts} points, highest ${p.a}/${p.hi} → ${p.tp} termination + ${p.pp} patch panels`, "", ""]));
-    out.push([`Patch panels (${r.pps}-way)`, r.ppTotal, r.ppTotal]);
+    Object.keys(r.patches).sort((a,b) => a.localeCompare(b, "en", {numeric:true})).forEach(k => out.push([`Patch: ${k} (in / out used)`, r.patches[k].inn.size, r.patches[k].out.size]));
+    out.push(["Patch panels", r.ppTotal, r.ppTotal]);
+    r.tpPanels.forEach(p => out.push([`Termination loc ${p.loc}: ${p.n} points`, p.panels, p.panels]));
     out.push([`Termination panels (${r.tps}-way)`, r.tpTotal, r.tpTotal]);
+    if (r.bad.length) out.push(["Numbers with unexpected jack (counted as direct)", r.bad.join(" "), ""]);
     return out;
   }
   $("#dxf-file").addEventListener("change", e => {
@@ -492,7 +510,7 @@ td{padding:5px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
     if (!dxf) return;
     const tr_ = e.target.closest("tr[data-p]");
     if (tr_){ const m = dxf.map[tr_.dataset.p], k = e.target.dataset.m; m[k] = k === "use" ? e.target.checked : e.target.value; if (k !== "sig") renderDxf(); return; }
-    if (["dxf-spare","dxf-jlen","dxf-jcable","dxf-ppsize","dxf-tpsize"].includes(e.target.id)) renderDxf();
+    if (["dxf-spare","dxf-jlen","dxf-jcable","dxf-tpsize"].includes(e.target.id)) renderDxf();
   });
   $("#dxf-copy").addEventListener("click", async () => { if (!dxf) return; try { await navigator.clipboard.writeText(dxfRows().map(r => r.join("\t")).join("\n")); toast("BOM copied ✓"); } catch { toast("Copy failed"); } });
   $("#dxf-csv").addEventListener("click", () => {
