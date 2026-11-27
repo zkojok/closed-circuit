@@ -113,6 +113,29 @@ td{padding:5px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
     </div>
   </header>
 
+  <section class="panel" id="dxf">
+    <div class="top"><h2><span class="step">⚡</span>Import from AutoCAD (DXF)</h2>
+      <div class="row no-print"><label class="btn pri" for="dxf-file" style="cursor:pointer">Choose DXF file</label><input type="file" id="dxf-file" accept=".dxf" hidden></div></div>
+    <p class="muted">In AutoCAD: <b>Save As → DXF</b>. The file is read in your browser and is not uploaded anywhere. The calculator reads cable numbers written on the lines (e.g. D04109) and termination points (e.g. A/11 or 2/14), then applies Device → Termination (I-BNC) → Patch.</p>
+    <div id="dxf-out" hidden>
+      <p class="muted" id="dxf-title"></p>
+      <h3 style="font-size:.95rem">Cable types found <span class="muted" style="font-weight:400">(check the meaning of each prefix)</span></h3>
+      <div class="tbl-wrap"><table id="dxf-map"></table></div>
+      <div class="row"><label class="f" style="flex:0 1 220px">Jumper cable term → patch<input id="dxf-jcable" value="Belden 1855A"></label>
+        <label class="f" style="flex:0 1 200px">Jumper length (m)<input id="dxf-jlen" type="number" min="0" step="0.5" value="2"></label>
+        <label class="f" style="flex:0 1 120px">Spare %<input id="dxf-spare" type="number" min="0" max="100" step="1" value="10"></label></div>
+      <div class="kpis" id="dxf-kpis"></div>
+      <div class="res-grid">
+        <div class="res"><h3>Connectors & boots</h3><table id="dxf-conn"></table></div>
+        <div class="res"><h3>Termination panels</h3><table id="dxf-tp"></table></div>
+        <div class="res"><h3>Cable</h3><table id="dxf-cable"></table></div>
+        <div class="res"><h3>Blocks in the drawing</h3><div class="tbl-wrap" style="max-height:320px;overflow-y:auto"><table id="dxf-blocks"></table></div></div>
+      </div>
+      <div class="row no-print"><button class="btn" id="dxf-copy" type="button">Copy BOM</button><button class="btn" id="dxf-csv" type="button">Download CSV</button></div>
+      <p class="muted">Cable metres are not read from the drawing: schematics are not to scale. Lengths come from the room layout. Every termination point is one female-female I-BNC plus one jumper to the patch with two crimp BNC.</p>
+    </div>
+  </section>
+
   <section class="panel">
     <h2><span class="step">1</span>Project</h2>
     <div class="row">
@@ -376,6 +399,99 @@ td{padding:5px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
     try { const p = JSON.parse(await f.text()); if (!p || !Array.isArray(p.panels) || !Array.isArray(p.devices)) throw 0; p.id = uid(); store.projects[p.id] = p; store.current = p.id; save(); renderAll(); toast("Imported ✓"); }
     catch { toast("That file is not a project from this calculator"); }
     e.target.value = "";
+  });
+
+  // ---- DXF import
+  const PREFIX = {D:["SDI video","BNC","Coax 75Ω (Belden 1694A)"],V:["Analog video","BNC","Coax 75Ω (Belden 1694A)"],R:["Reference / sync","BNC","Coax 75Ω (Belden 1694A)"],
+    S:["AES digital audio (75Ω)","BNC","Coax 75Ω (Belden 1694A)"],L:["LAN","RJ45","CAT6"],A:["Analog audio","XLR","Audio pair"],F:["Fiber","LC","Fiber SM duplex"],M:["MADI","BNC","Coax 75Ω (Belden 1694A)"],T:["Timecode","BNC","Coax 75Ω (Belden 1694A)"]};
+  let dxf = null;
+  function parseDxf(txt){
+    const L = txt.split(/\r?\n/), cables = {}, tp = {}, blocks = {};
+    let sec = null, type = null, layer = "", name = null, text = "";
+    const flush = () => {
+      if ((type === "TEXT" || type === "MTEXT") && text){
+        const t = text.replace(/\\[A-Za-z][^;\\]*;/g, "").replace(/\\P/g, " ").replace(/[{}]/g, "").trim();
+        if (/^[A-Z]\d{5,6}$/.test(t)) (cables[t] = cables[t] || []).push(layer);
+        const m = /^([A-Z0-9]{1,2})\s*\/\s*(\d{1,3})$/.exec(t);
+        if (m) (tp[m[1]] = tp[m[1]] || new Set()).add(+m[2]);
+      }
+      if (type === "INSERT" && name && name[0] !== "*") blocks[name] = (blocks[name] || 0) + 1;
+    };
+    for (let i = 0; i + 1 < L.length; i += 2){
+      const c = L[i].trim(), v = L[i+1].trim();
+      if (c === "0"){
+        if (sec === "ENTITIES") flush();
+        type = v; layer = ""; name = null; text = "";
+        if (v === "SECTION") sec = (L[i+3] || "").trim();
+        else if (v === "ENDSEC") sec = null;
+        continue;
+      }
+      if (sec !== "ENTITIES") continue;
+      if (c === "8") layer = v;
+      else if (c === "2" && type === "INSERT") name = v;
+      else if (c === "1" && (type === "TEXT" || type === "MTEXT")) text = v;
+    }
+    return {cables, tp, blocks};
+  }
+  function dxfCalc(){
+    const s = num($("#dxf-spare").value, 0), jl = num($("#dxf-jlen").value, 0), jc = $("#dxf-jcable").value.trim() || "Jumper cable";
+    const by = {}; Object.keys(dxf.cables).forEach(k => by[k[0]] = (by[k[0]] || 0) + 1);
+    const conn = {}, boot = {n:0}, cable = {}, add = (o,k,n) => o[k] = (o[k] || 0) + n;
+    Object.entries(by).forEach(([p, n]) => { const m = dxf.map[p]; if (!m.use) return; add(conn, m.conn + (m.conn === "BNC" ? " crimp (male)" : ""), 2 * n); if (BOOTABLE.has(m.conn)) boot.n += 2 * n; add(cable, m.cable + " (runs)", n); });
+    const tpn = Object.values(dxf.tp).reduce((a, v) => a + v.size, 0);
+    if (tpn){ add(conn, "BNC crimp (male)", 2 * tpn); boot.n += 2 * tpn; add(conn, "I-BNC feed-through (female-female)", tpn); add(cable, jc + " (m)", tpn * jl); add(cable, jc + " (jumpers)", tpn); }
+    return {by, conn, boot:boot.n, cable, tpn, s};
+  }
+  function renderDxf(){
+    if (!dxf) return;
+    $("#dxf-out").hidden = false;
+    const r = dxfCalc(), s = r.s, sp = v => withSpare(v, s);
+    $("#dxf-title").textContent = `${dxf.file} · ${Object.keys(dxf.cables).length} numbered cables · ${r.tpn} termination points · quantities include ${s}% spare (without spare in brackets)`;
+    $("#dxf-map").innerHTML = `<tr><th>Prefix</th><th>Cables</th><th>Signal</th><th>Connector</th><th>Cable</th><th>Count</th></tr>` + Object.keys(r.by).sort().map(p => { const m = dxf.map[p];
+      return `<tr data-p="${esc(p)}"><td><span class="tag">${esc(p)}…</span></td><td class="n">${r.by[p]}</td><td><input data-m="sig" value="${esc(m.sig)}" aria-label="Signal for ${esc(p)}"></td><td><select data-m="conn" aria-label="Connector for ${esc(p)}">${opt(CONNS, m.conn)}</select></td><td><input data-m="cable" value="${esc(m.cable)}" aria-label="Cable for ${esc(p)}"></td><td><input data-m="use" type="checkbox" ${m.use ? "checked" : ""} aria-label="Count ${esc(p)}" style="width:auto"></td></tr>`; }).join("");
+    const totConn = Object.entries(r.conn).filter(([k]) => !/I-BNC/.test(k)).reduce((a, [,v]) => a + sp(v), 0);
+    $("#dxf-kpis").innerHTML = [[Object.values(r.by).reduce((a,b) => a + b, 0),"cable runs"],[r.tpn,"termination points"],[totConn,"crimp connectors"],[sp(r.boot),"boots"]].map(([v,l]) => `<div class="kpi"><b>${v.toLocaleString("en-US")}</b><span>${l}</span></div>`).join("");
+    const rows = o => `<tr><th>Item</th><th>Qty</th></tr>` + Object.entries(o).map(([k,v]) => `<tr><td>${esc(k)}</td><td>${sp(v).toLocaleString("en-US")} <span class="muted">(${Math.round(v)})</span></td></tr>`).join("");
+    $("#dxf-conn").innerHTML = rows({...r.conn, "Boots": r.boot});
+    $("#dxf-cable").innerHTML = rows(r.cable);
+    $("#dxf-tp").innerHTML = Object.keys(dxf.tp).length ? `<tr><th>Panel</th><th>Points / min. size</th></tr>` + Object.keys(dxf.tp).sort().map(a => `<tr><td>${esc(a)}</td><td>${dxf.tp[a].size} / ${Math.max(...dxf.tp[a])}</td></tr>`).join("") : `<tr><td class="muted">No labels like A/11 found</td></tr>`;
+    $("#dxf-blocks").innerHTML = `<tr><th>Block</th><th>Qty</th></tr>` + Object.entries(dxf.blocks).sort((a,b) => b[1] - a[1]).map(([k,v]) => `<tr><td>${esc(k)}</td><td>${v}</td></tr>`).join("");
+  }
+  function dxfRows(){
+    const r = dxfCalc(), sp = v => withSpare(v, r.s), out = [["Item","Qty incl. spare","Qty without spare"]];
+    Object.entries(r.by).forEach(([p,n]) => { const m = dxf.map[p]; if (m.use) out.push([`Cable runs ${p}… ${m.sig}`, n, n]); });
+    Object.entries({...r.conn, "Boots": r.boot}).forEach(([k,v]) => out.push([k, sp(v), Math.round(v)]));
+    Object.entries(r.cable).forEach(([k,v]) => out.push([k, sp(v), Math.round(v)]));
+    Object.keys(dxf.tp).sort().forEach(a => out.push([`Termination panel ${a} (points / min. size)`, dxf.tp[a].size, Math.max(...dxf.tp[a])]));
+    return out;
+  }
+  $("#dxf-file").addEventListener("change", e => {
+    const f = e.target.files[0]; if (!f) return;
+    if (!/\.dxf$/i.test(f.name)){ toast("Please save the drawing as DXF first"); return; }
+    const rd = new FileReader();
+    rd.onload = () => {
+      const txt = String(rd.result);
+      if (!/^\s*0\s*[\r\n]+\s*SECTION/.test(txt.slice(0, 200))){ toast("This looks like a binary DXF. Save it as ASCII DXF."); return; }
+      const p = parseDxf(txt), map = {};
+      Object.keys(p.cables).forEach(k => { const d = PREFIX[k[0]] || ["Unknown, check","BNC","Coax 75Ω"]; map[k[0]] = {sig:d[0], conn:d[1], cable:d[2], use:true}; });
+      dxf = {...p, map, file:f.name}; $("#dxf-spare").value = P().spare ?? 10;
+      renderDxf(); tr("dxf_import", {cables:Object.keys(p.cables).length});
+      toast(Object.keys(p.cables).length ? "Drawing read ✓" : "No cable numbers found. Check the drawing labels.");
+    };
+    rd.readAsText(f, "windows-1252"); e.target.value = "";
+  });
+  $("#dxf").addEventListener("input", e => {
+    if (!dxf) return;
+    const tr_ = e.target.closest("tr[data-p]");
+    if (tr_){ const m = dxf.map[tr_.dataset.p], k = e.target.dataset.m; m[k] = k === "use" ? e.target.checked : e.target.value; if (k !== "sig") renderDxf(); return; }
+    if (["dxf-spare","dxf-jlen","dxf-jcable"].includes(e.target.id)) renderDxf();
+  });
+  $("#dxf-copy").addEventListener("click", async () => { if (!dxf) return; try { await navigator.clipboard.writeText(dxfRows().map(r => r.join("\t")).join("\n")); toast("BOM copied ✓"); } catch { toast("Copy failed"); } });
+  $("#dxf-csv").addEventListener("click", () => {
+    if (!dxf) return;
+    const csv = "﻿" + dxfRows().map(r => r.map(x => `"${String(x).replace(/"/g,'""')}"`).join(",")).join("\r\n");
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv"})); a.download = dxf.file.replace(/\.dxf$/i, "") + "-BOM.csv"; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    tr("dxf_csv");
   });
 
   function renderAll(){ renderProject(); renderPanels(); renderDevices(); renderResults(); }
