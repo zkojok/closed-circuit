@@ -141,6 +141,9 @@ td{padding:5px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
         <div class="res"><h3>Blocks in the drawing</h3><div class="tbl-wrap" style="max-height:320px;overflow-y:auto"><table id="dxf-blocks"></table></div></div>
       </div>
       <div class="row no-print"><button class="btn" id="dxf-copy" type="button">Copy BOM</button><button class="btn" id="dxf-csv" type="button">Download CSV</button></div>
+      <div class="chk no-print" style="border-inline-start-color:var(--cyan)"><h3>Want the drawing reviewed, or the full cable schedule?</h3>
+        <p class="muted">I check the connections, fix the numbering and prepare the cable schedule and material list ready for ordering. Send me the project on WhatsApp.</p>
+        <div><a class="btn pri" id="dxf-wa" target="_blank" rel="noopener" href="https://wa.me/96170368646">Send on WhatsApp</a></div></div>
       <p class="muted">Cable metres are not read from the drawing: schematics are not to scale. Lengths come from the room layout. Every coax cable to a patch adds one female-female I-BNC on the termination panel plus one jumper to the patch with two crimp BNC. Termination panels are counted per location.</p>
     </div>
   </section>
@@ -501,6 +504,7 @@ td{padding:5px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
     const r = dxfCalc(), s = r.s, sp = v => withSpare(v, s);
     $("#dxf-title").textContent = `${dxf.file} · ${Object.keys(dxf.cables).length} numbered cables · ${r.nPatched} to patch, ${r.nDirect} direct (patch code 9x) · quantities include ${s}% spare (without spare in brackets)`;
     const ck = dxfCheck(), box = $("#dxf-check");
+    $("#dxf-wa").href = "https://wa.me/96170368646?text=" + encodeURIComponent(`Hi Zakaria, I used your patch calculator on "${dxf.file}" (${Object.keys(dxf.cables).length} cables, ${ck.e.length} error${ck.e.length === 1 ? "" : "s"} in the check). I'd like help with the drawing / cable schedule.`);
     box.className = "chk" + (ck.e.length ? " has-err" : ck.w.length ? " has-warn" : "");
     box.innerHTML = `<h3 class="${ck.e.length ? "bad" : ck.w.length ? "warn" : "ok"}">Connection check: ${ck.e.length ? `${ck.e.length} error${ck.e.length > 1 ? "s" : ""}` : "no errors"}${ck.w.length ? `, ${ck.w.length} warning${ck.w.length > 1 ? "s" : ""}` : ""}</h3>`
       + (ck.e.length ? `<p class="muted">Fix the errors in the drawing before you order material: the quantities below are counted from the numbers as they are.</p>` : "")
@@ -566,6 +570,7 @@ td{padding:5px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
   let used = false; $("#app").addEventListener("input", () => { if (!used){ used = true; tr("patchcalc_used"); } });
   ["#b-copy","#b-print","#b-export"].forEach(s => $(s).addEventListener("click", () => tr("patchcalc_" + s.slice(3))));
   $("#sb-wa").addEventListener("click", () => tr("whatsapp_click", {page:"patch-calc"}));
+  $("#dxf-wa").addEventListener("click", () => tr("whatsapp_click", {page:"patch-calc-dxf"}));
   if (ok) unlock();
 })();
 </script>
