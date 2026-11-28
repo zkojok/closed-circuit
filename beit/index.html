@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
+<meta name="google" content="notranslate">
 <title>ناقص بالبيت</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -38,13 +39,14 @@ input[type=text],select{font:inherit;color:var(--ink);background:var(--sunk);bor
 .clear{background:none;border:0;color:var(--muted);font:inherit;text-decoration:underline;cursor:pointer}
 .lock{position:fixed;inset:0;background:var(--bg);display:grid;place-items:center;padding:16px;z-index:10}
 .lock form{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px;display:grid;gap:12px;width:min(320px,100%);text-align:center}
-.lock input{font:inherit;font-size:1.6rem;letter-spacing:.4em;text-align:center;direction:ltr;color:var(--ink);background:var(--sunk);border:1px solid var(--line);border-radius:12px;padding:10px}
+.lock input{font:inherit;font-size:1.6rem;letter-spacing:.4em;text-align:center;direction:ltr;color:var(--ink);background:var(--sunk);border:1px solid var(--line);border-radius:12px;padding:10px;width:100%;min-width:0}
+.lock form>*{min-width:0}
 .lock button{font:inherit;font-weight:700;border:0;border-radius:12px;padding:12px;background:var(--band);color:#fff;cursor:pointer}
 .lock .err{color:#E0482B;min-height:1.4em;margin:0}
 </style>
 </head>
 <body>
-<div class="lock" id="lock"><form id="lock-form" autocomplete="off"><h1 style="color:var(--ink);font-size:1.3rem">شو ناقص بالبيت؟</h1><p style="margin:0;color:var(--muted)">اكتب الرمز</p><input id="pin" inputmode="numeric" maxlength="4" aria-label="الرمز" autocomplete="off"><button type="submit">فوت</button><p class="err" id="pin-err" role="status"></p></form></div>
+<div class="lock" id="lock"><form id="lock-form" autocomplete="off"><h1 style="color:var(--ink);font-size:1.3rem">شو ناقص بالبيت؟</h1><p style="margin:0;color:var(--muted)">اكتب الرمز</p><input id="pin" inputmode="numeric" maxlength="4" size="4" aria-label="الرمز" autocomplete="off"><button type="submit">فوت</button><p class="err" id="pin-err" role="status"></p></form></div>
 <header class="band"><div class="in"><h1>شو ناقص بالبيت؟</h1><p>علّم اللي خلص، واكبس «ابعت لبابا».</p></div></header>
 <main class="in">
   <div class="card"><label class="f">مين عم يبعت؟<select id="who"><option value="">—</option><option>محمد</option><option>حلا</option><option>منة</option><option>علي الأمير</option><option>عباس</option></select></label></div>
@@ -57,7 +59,7 @@ input[type=text],select{font:inherit;color:var(--ink);background:var(--sunk);bor
 (() => {
   const ITEMS = {
     "خضرة وفواكه":["بندورة","خيار","بصل","ثوم","بطاطا","حامض","خس","بقدونس","تفّاح","موز"],
-    "لحمة ودجاج":["دجاج","لحمة مفرومة","صدر دجاج"],
+    "لحمة ودجاج":["لحمة راس عصفور","لحمة مدقوقة","لحمة مفرومة","كفتة","همبرغر","موزات","كبّة","سجق","مقانق","لحمة شاورما","دجاج كامل","فخاد دجاج","صدر دجاج","جوانح","طاووق","شاورما دجاج","كبدة دجاج","سمك","فيليه سمك","قريدس"],
     "ألبان وأجبان":["حليب","لبن","لبنة","جبنة","بيض","زبدة"],
     "بقالة":["رز","برغل","عدس","معكرونة","طحين","سكّر","ملح","زيت زيتون","زيت قلي","رب بندورة","حمّص حب","شاي","قهوة","زعتر","مربّى","تونة"],
     "للولاد":["شيبس","إندومي","شوكولا","كورن فلكس","بسكويت","عصير","حليب بالشوكولا","نوتيلا","كرواسون","كيك صغير","جيلي","مصّاصات","بوشار","بوظة","علكة"],
