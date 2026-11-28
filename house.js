@@ -29,14 +29,14 @@
     ctaT: 'بدّك هيك ببيتك؟', ctaP: 'ابعتلي السيناريوهات اللي جرّبتها، وبقلّك شو بيلزم بيتك، على واتساب.', ctaB: 'ابعت على واتساب'
   };
 
-  // Devices: id -> [x, y, type, watts]
+  // Devices: id -> [x, y, type, watts, camera angle]; x/y are pixels on img/smart-house.webp, y shifted down 266 for the roof strip
   var DEV = {
-    l_liv: [170, 150, 'light', 10], l_kit: [450, 150, 'light', 10], l_b1: [95, 345, 'light', 10],
-    l_b2: [300, 320, 'light', 10], l_bath: [445, 320, 'light', 10],
-    ac_liv: [270, 100, 'ac', 900], ac_b1: [165, 280, 'ac', 900],
-    heater: [445, 380, 'heater', 2000], washer: [540, 215, 'washer', 500], fridge: [360, 215, 'fridge', 60],
-    router: [250, 225, 'router', 15], cam1: [300, 232, 'cam', 8], cam2: [603, 232, 'cam', 8],
-    lock: [20, 200, 'lock', 0], valve: [405, 212, 'valve', 0], leak: [470, 212, 'leak', 0]
+    l_liv: [1110, 886, 'light', 10], l_kit: [1255, 596, 'light', 10], l_b1: [400, 451, 'light', 10],
+    l_b2: [955, 456, 'light', 10], l_bath: [688, 406, 'light', 10],
+    ac_liv: [1100, 782, 'ac', 900], ac_b1: [410, 330, 'ac', 900],
+    heater: [742, 470, 'heater', 2000], washer: [1185, 690, 'washer', 500], fridge: [1345, 676, 'fridge', 60],
+    router: [1352, 996, 'router', 15], cam1: [760, 1110, 'cam', 8, -90], cam2: [1300, 370, 'cam', 8, 0],
+    lock: [760, 1016, 'lock', 0], valve: [1165, 482, 'valve', 0], leak: [1228, 506, 'leak', 0]
   };
 
   var BASE = {
@@ -114,7 +114,7 @@
       return '<button type="button" data-sc="' + s.id + '"><span>' + s.icon + '</span>' + s.name + '</button>';
     }).join('') + '</div>' +
     '<div class="sh-main">' +
-    '<div class="sh-house"><svg id="sh-svg" viewBox="0 0 640 420" role="img" aria-label="' + (EN ? 'Smart house floor plan' : 'مخطط البيت الذكي') + '"></svg>' +
+    '<div class="sh-house"><svg id="sh-svg" viewBox="0 0 1536 1290" role="img" aria-label="' + (EN ? 'Smart house floor plan' : 'مخطط البيت الذكي') + '"></svg>' +
     '<div class="sh-stats">' + ['src', 'soc', 'pv', 'load'].map(function (k) {
       return '<div><small>' + L[k] + '</small><b id="sh-' + k + '"></b></div>';
     }).join('') + '</div></div>' +
@@ -131,43 +131,63 @@
 
   // ---------- static floor plan ----------
   var svg = $('sh-svg');
-  var rooms = [['roof', 20, 10, 600, 50], ['liv', 20, 75, 300, 175], ['kit', 320, 75, 300, 175], ['b1', 20, 250, 190, 160], ['b2', 210, 250, 180, 160], ['bath', 390, 250, 110, 160], ['ut', 500, 250, 120, 160]];
-  rooms.forEach(function (r) {
-    svg.appendChild(el('rect', { x: r[1], y: r[2], width: r[3], height: r[4], 'class': 'sh-room' + (r[0] === 'roof' ? ' roof' : '') }));
-    svg.appendChild(el('text', { x: r[1] + 10, y: r[2] + 20, 'class': 'sh-rl' }, L.rooms[r[0]]));
-  });
-  for (var i = 0; i < 7; i++) svg.appendChild(el('rect', { x: 170 + i * 62, y: 20, width: 56, height: 30, rx: 3, 'class': 'sh-panel' }));
+  // Photo version: a 3D render of the house (img/smart-house.webp) under a real rooftop solar strip.
+  // Coordinates are image pixels; the house image starts at y=266 below the 260-unit roof strip.
+  var HY = 266, PATH = EN ? '../img/' : 'img/';
+  svg.setAttribute('viewBox', '0 0 1536 1290');
+  svg.classList.add('sh-photo');
+  function add(parent, tag, a, txt) { var e = el(tag, a, txt); parent.appendChild(e); return e; }
+  var defs = add(svg, 'defs', {});
+  defs.innerHTML = '<radialGradient id="sh-warm"><stop offset="0" stop-color="#FFF1C4" stop-opacity=".95"/><stop offset=".45" stop-color="#FFD978" stop-opacity=".45"/><stop offset="1" stop-color="#FFD978" stop-opacity="0"/></radialGradient>';
+  add(svg, 'rect', { x: 0, y: 0, width: 1536, height: 260, rx: 18, 'class': 'sh-roofbg' });
+  add(svg, 'image', { href: PATH + 'solar-strip.webp', x: 0, y: 0, width: 760, height: 260, preserveAspectRatio: 'xMidYMid slice' });
+  add(svg, 'image', { href: PATH + 'smart-house.webp', x: 0, y: HY, width: 1536, height: 1024 });
 
-  // energy flows
+  // lighting: one shade per room with a light, plus one for the rest of the house (hall, second bedroom and bath)
+  var RM = { b1: [232, 45, 358, 255], bath: [605, 45, 165, 200], b2: [785, 35, 345, 262], kit: [1140, 165, 250, 280], liv: [830, 490, 580, 290] };
+  var LIGHTROOM = { liv: 'l_liv', kit: 'l_kit', b1: 'l_b1', b2: 'l_b2', bath: 'l_bath', rest: null };
+  var rest = 'M175,' + (30 + HY) + ' H1415 V' + (790 + HY) + ' H175 Z';
+  Object.keys(RM).forEach(function (k) {
+    var r = RM[k];
+    add(svg, 'rect', { x: r[0], y: r[1] + HY, width: r[2], height: r[3], id: 'sh-shade-' + k, 'class': 'sh-shade' });
+    rest += ' M' + r[0] + ',' + (r[1] + HY) + ' h' + r[2] + ' v' + r[3] + ' h' + (-r[2]) + ' Z';
+  });
+  add(svg, 'path', { d: rest, 'fill-rule': 'evenodd', id: 'sh-shade-rest', 'class': 'sh-shade' });
+  [['b1', 250, 82], ['bath', 615, 270], ['b2', 800, 72], ['kit', 1150, 470], ['liv', 845, 520]].forEach(function (t) {
+    add(svg, 'text', { x: t[1], y: t[2] + HY, 'class': 'sh-rl' }, L.rooms[t[0]]);
+  });
+  add(svg, 'text', { x: 24, y: 46, 'class': 'sh-rl' }, L.rooms.roof);
+  add(svg, 'text', { x: 970, y: 34, 'class': 'sh-rl' }, L.rooms.ut);
+
+  // energy flows: roof strip -> inverter <- grid, inverter <-> battery, inverter -> house
   var FLOW = {
-    pv: 'M560,50 L560,282', grid: 'M617,300 L594,300', bat: 'M560,318 L560,350', home: 'M528,300 H510 V250 H40'
+    pv: 'M760,95 H900', grid: 'M1400,95 H1050', bat: 'M975,135 V160', home: 'M1050,120 H1180 V' + (175 + HY)
   };
   Object.keys(FLOW).forEach(function (k) { svg.appendChild(el('path', { d: FLOW[k], id: 'sh-f-' + k, 'class': 'sh-flow' })); });
-  svg.appendChild(el('rect', { x: 528, y: 282, width: 64, height: 36, rx: 6, 'class': 'sh-inv' }));
-  svg.appendChild(el('text', { x: 560, y: 305, 'class': 'sh-dl' }, L.inv));
-  svg.appendChild(el('rect', { x: 532, y: 352, width: 56, height: 46, rx: 6, 'class': 'sh-batbox' }));
-  svg.appendChild(el('rect', { x: 536, y: 356, width: 48, height: 38, rx: 3, id: 'sh-batfill', 'class': 'sh-batfill' }));
-  svg.appendChild(el('text', { x: 560, y: 380, id: 'sh-battxt', 'class': 'sh-dl strong' }, ''));
-  // grid pole marker
-  svg.appendChild(el('circle', { cx: 626, cy: 300, r: 8, id: 'sh-gridpt', 'class': 'sh-gridpt' }));
-  svg.appendChild(el('text', { x: 610, y: 330, 'class': 'sh-dl small' }, L.grid));
+  svg.appendChild(el('rect', { x: 900, y: 55, width: 150, height: 80, rx: 12, 'class': 'sh-inv' }));
+  svg.appendChild(el('text', { x: 975, y: 103, 'class': 'sh-dl' }, L.inv));
+  svg.appendChild(el('rect', { x: 920, y: 160, width: 110, height: 90, rx: 12, 'class': 'sh-batbox' }));
+  svg.appendChild(el('rect', { x: 928, y: 168, width: 94, height: 74, rx: 6, id: 'sh-batfill', 'class': 'sh-batfill' }));
+  svg.appendChild(el('text', { x: 975, y: 214, id: 'sh-battxt', 'class': 'sh-dl strong' }, ''));
+  svg.appendChild(el('circle', { cx: 1420, cy: 95, r: 18, id: 'sh-gridpt', 'class': 'sh-gridpt' }));
+  svg.appendChild(el('text', { x: 1420, y: 160, 'class': 'sh-dl small' }, L.grid));
 
   // devices
   var ICON = {
-    light: function (g) { g.appendChild(el('circle', { r: 26, 'class': 'glow' })); g.appendChild(el('circle', { r: 8, 'class': 'core' })); },
-    ac: function (g) { g.appendChild(el('rect', { x: -22, y: -8, width: 44, height: 16, rx: 4, 'class': 'core' })); g.appendChild(el('path', { d: 'M-14,14 q4,6 0,12 M0,14 q4,6 0,12 M14,14 q4,6 0,12', 'class': 'wind' })); },
+    light: function (g) { g.appendChild(el('circle', { r: 70, 'class': 'glow', fill: 'url(#sh-warm)' })); g.appendChild(el('circle', { r: 7, 'class': 'core' })); },
+    ac: function (g) { g.appendChild(el('rect', { x: -22, y: -8, width: 44, height: 16, rx: 4, 'class': 'core' })); g.appendChild(el('path', { d: 'M-16,12 q5,8 0,16 q-5,8 0,16 M0,12 q5,8 0,16 q-5,8 0,16 M16,12 q5,8 0,16 q-5,8 0,16', 'class': 'wind' })); },
     heater: function (g) { g.appendChild(el('rect', { x: -12, y: -18, width: 24, height: 36, rx: 10, 'class': 'core' })); g.appendChild(el('path', { d: 'M-6,-26 q4,-6 0,-12 M6,-26 q4,-6 0,-12', 'class': 'wind' })); },
     washer: function (g) { g.appendChild(el('rect', { x: -16, y: -16, width: 32, height: 32, rx: 5, 'class': 'core' })); g.appendChild(el('circle', { r: 9, 'class': 'drum' })); },
     fridge: function (g) { g.appendChild(el('rect', { x: -12, y: -20, width: 24, height: 40, rx: 4, 'class': 'core' })); },
-    router: function (g) { g.appendChild(el('rect', { x: -14, y: -6, width: 28, height: 12, rx: 3, 'class': 'core' })); g.appendChild(el('path', { d: 'M-8,-10 L-8,-20 M8,-10 L8,-20', 'class': 'wind' })); },
-    cam: function (g) { g.appendChild(el('rect', { x: -10, y: -6, width: 20, height: 12, rx: 3, 'class': 'core' })); g.appendChild(el('circle', { cx: 13, r: 3, 'class': 'rec' })); },
+    router: function (g) { g.appendChild(el('rect', { x: -14, y: -6, width: 28, height: 12, rx: 3, 'class': 'core' })); g.appendChild(el('path', { d: 'M-8,-10 a10,10 0 0 1 16,0 M-14,-16 a18,18 0 0 1 28,0', 'class': 'wind wave' })); },
+    cam: function (g) { g.appendChild(el('path', { d: 'M0,0 L-80,-38 A88,88 0 0 1 -80,38 Z', 'class': 'cone' })); g.appendChild(el('rect', { x: -10, y: -6, width: 20, height: 12, rx: 3, 'class': 'core' })); g.appendChild(el('circle', { cx: 13, r: 3, 'class': 'rec' })); },
     lock: function (g) { g.appendChild(el('rect', { x: -9, y: -4, width: 18, height: 16, rx: 3, 'class': 'core' })); g.appendChild(el('path', { d: 'M-6,-4 v-6 a6,6 0 0 1 12,0 v6', 'class': 'shackle' })); },
     valve: function (g) { g.appendChild(el('circle', { r: 10, 'class': 'core' })); g.appendChild(el('path', { d: 'M-7,0 L7,0', 'class': 'handle' })); },
     leak: function (g) { g.appendChild(el('path', { d: 'M0,-14 C7,-4 10,2 10,6 A10,10 0 0 1 -10,6 C-10,2 -7,-4 0,-14 z', 'class': 'core' })); }
   };
   Object.keys(DEV).forEach(function (id) {
     var d = DEV[id];
-    var g = el('g', { id: 'sh-d-' + id, 'class': 'sh-dev ' + d[2], transform: 'translate(' + d[0] + ',' + d[1] + ')' });
+    var g = el('g', { id: 'sh-d-' + id, 'class': 'sh-dev ' + d[2], transform: 'translate(' + d[0] + ',' + d[1] + ') scale(2.3)' + (d[4] ? ' rotate(' + d[4] + ')' : '') });
     ICON[d[2]](g);
     svg.appendChild(g);
   });
@@ -194,6 +214,13 @@
     $('sh-d-valve').classList.toggle('on', !!st.valveOpen);
     $('sh-d-valve').classList.toggle('closed', !st.valveOpen);
     $('sh-d-leak').classList.toggle('on', !!st.leak);
+    // room lighting: night rooms go dark unless their light is on
+    var hr = parseInt(st.time, 10), day = hr >= 7 && hr < 17;
+    Object.keys(LIGHTROOM).forEach(function (rk) {
+      var lid = LIGHTROOM[rk], lit = lid && st.on[lid], op = lit ? (st.dim[lid] ? 0.28 : 0) : (day ? 0 : (rk === 'rest' ? 0.5 : 0.62));
+      $('sh-shade-' + rk).style.opacity = op;
+    });
+    svg.classList.toggle('night', !day);
 
     var charging = st.grid || st.pv > load;
     var src = st.grid ? 'grid' : st.pv >= load ? 'pv' : 'bat';
@@ -202,9 +229,9 @@
     $('sh-f-bat').setAttribute('class', 'sh-flow on bat' + (charging ? '' : ' rev'));
     $('sh-f-home').setAttribute('class', 'sh-flow on home');
     $('sh-gridpt').setAttribute('class', 'sh-gridpt' + (st.grid ? ' on' : ''));
-    var h = Math.max(2, 38 * st.soc / 100);
+    var h = Math.max(4, 74 * st.soc / 100);
     var fill = $('sh-batfill');
-    fill.setAttribute('y', 356 + 38 - h); fill.setAttribute('height', h);
+    fill.setAttribute('y', 168 + 74 - h); fill.setAttribute('height', h);
     fill.setAttribute('class', 'sh-batfill' + (st.soc < 30 ? ' low' : ''));
     $('sh-battxt').textContent = st.soc + '%';
 

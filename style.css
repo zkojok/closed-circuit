@@ -71,7 +71,7 @@ img,svg{display:block;max-width:100%}
 }
 .hero-inner{position:relative;max-width:780px}
 .hero-photo{margin:36px 0 0;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);box-shadow:0 18px 50px rgba(0,0,0,.35)}
-.hero-photo img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover}
+.hero-photo img{display:block;width:100%;height:auto}
 .eyebrow{
   display:inline-block;padding:6px 14px;border-radius:999px;
   border:1px solid var(--line);color:var(--cyan);font-size:.9rem;font-weight:700;margin-bottom:22px;
@@ -393,7 +393,21 @@ html[lang="en"] .lang-switch{font-family:"Tajawal",sans-serif}
 #sh-svg{width:100%;height:auto;display:block;direction:ltr}
 .sh-room{fill:rgba(255,255,255,.015);stroke:var(--line);stroke-width:2}
 .sh-room.roof{fill:rgba(34,211,238,.03);stroke-dasharray:6 6}
-.sh-rl{fill:var(--muted);font-size:12px;font-family:"Tajawal",system-ui,sans-serif;font-weight:700}
+.sh-rl{fill:#fff;font-size:12px;font-family:"Tajawal",system-ui,sans-serif;font-weight:800;paint-order:stroke;stroke:rgba(10,15,28,.75);stroke-width:3px;stroke-linejoin:round}
+.sh-shade{fill:#050913;opacity:0;transition:opacity .8s ease;pointer-events:none}
+.sh-photo .sh-roofbg{fill:var(--card);stroke:var(--line);stroke-width:2}
+.sh-photo .sh-rl{font-size:30px;stroke-width:7px}
+.sh-photo .sh-dl{font-size:26px}.sh-photo .sh-dl.strong{font-size:30px}.sh-photo .sh-dl.small{font-size:24px}
+.sh-photo .sh-flow{stroke-width:8;stroke-dasharray:18 14}
+.sh-photo .sh-flow.on{animation:sh-flow-big 1s linear infinite}
+@keyframes sh-flow-big{to{stroke-dashoffset:-64}}
+.sh-photo .sh-inv,.sh-photo .sh-batbox{stroke-width:3}
+.sh-dev .cone{fill:rgba(34,211,238,.14);stroke:rgba(34,211,238,.45);stroke-width:1;opacity:0;transition:opacity .5s}
+.sh-dev.cam.on .cone{opacity:1;animation:sh-sweep 4s ease-in-out infinite alternate;transform-origin:0 0}
+@keyframes sh-sweep{from{transform:rotate(-14deg)}to{transform:rotate(14deg)}}
+.sh-dev.router.on .wave{opacity:1;stroke:var(--green);animation:sh-pulse 1.6s ease-in-out infinite}
+.sh-dev.ac.on .wind{stroke-dasharray:5 5;animation:sh-flow .9s linear infinite}
+.sh-dev.heater.on .wind{animation:sh-pulse 1.2s ease-in-out infinite}
 .sh-panel{fill:#16325C;stroke:#3B82F6;stroke-width:1}
 .sh-flow{fill:none;stroke:var(--line);stroke-width:3;stroke-dasharray:8 7;opacity:.5}
 .sh-flow.on{opacity:1;animation:sh-flow 1s linear infinite}
@@ -407,11 +421,11 @@ html[lang="en"] .lang-switch{font-family:"Tajawal",sans-serif}
 .sh-dl.strong{font-weight:800;font-size:13px}.sh-dl.small{font-size:10px;fill:var(--muted)}
 .sh-gridpt{fill:var(--line);transition:fill .3s}.sh-gridpt.on{fill:#60A5FA}
 .sh-dev .core{fill:var(--card);stroke:#475569;stroke-width:1.5;transition:fill .4s,stroke .4s}
-.sh-dev .glow{fill:#FDE68A;opacity:0;transition:opacity .5s}
+.sh-dev .glow{fill:url(#sh-warm);opacity:0;transition:opacity .7s;pointer-events:none}
 .sh-dev .wind,.sh-dev .shackle,.sh-dev .handle{fill:none;stroke:#475569;stroke-width:2;stroke-linecap:round;transition:stroke .4s,opacity .4s,transform .4s}
 .sh-dev .wind{opacity:0}
 .sh-dev .drum,.sh-dev .rec{fill:#1E293B;stroke:#475569}
-.sh-dev.light.on .glow{opacity:.28}.sh-dev.light.on.dim .glow{opacity:.1}
+.sh-dev.light.on .glow{opacity:.9}.sh-dev.light.on.dim .glow{opacity:.35}
 .sh-dev.light.on .core{fill:#FDE68A;stroke:#F59E0B}
 .sh-dev.ac.on .core{stroke:var(--cyan)}.sh-dev.ac.on .wind{opacity:1;stroke:var(--cyan)}
 .sh-dev.heater.on .core{fill:rgba(248,113,113,.25);stroke:#F87171}.sh-dev.heater.on .wind{opacity:1;stroke:#F87171}
@@ -451,7 +465,7 @@ html[lang="en"] .lang-switch{font-family:"Tajawal",sans-serif}
 .sh-foot{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center}
 .sh-foot .btn[disabled]{opacity:.4;cursor:not-allowed;transform:none}
 .sh-code{background:#05080F;border:1px solid var(--line);border-radius:12px;padding:16px;overflow-x:auto;direction:ltr;text-align:left;font-size:.85rem;line-height:1.55;color:#A5F3FC;margin:0}
-@media (prefers-reduced-motion:reduce){.sh-flow.on,.sh-dev.washer.on .drum,.sh-dev.leak.on .core{animation:none}}
+@media (prefers-reduced-motion:reduce){.sh-flow.on,.sh-dev.washer.on .drum,.sh-dev.leak.on .core,.sh-dev.cam.on .cone,.sh-dev.router.on .wave,.sh-dev.ac.on .wind,.sh-dev.heater.on .wind{animation:none}}
 @media (max-width:900px){.sh-main{grid-template-columns:minmax(0,1fr)}.sh-side{grid-template-columns:1fr 1fr}}
 @media (max-width:600px){#smart-house{padding:14px}.sh-side{grid-template-columns:minmax(0,1fr)}.sh-stats{grid-template-columns:1fr 1fr}.sh-btns button{font-size:.85rem;padding:8px 12px}}
 
