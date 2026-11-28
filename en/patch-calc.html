@@ -71,6 +71,14 @@ td{padding:5px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
 .kpi b{display:block;font-family:var(--mono);font-size:1.6rem;line-height:1.2}
 .kpi span{font-size:.8rem;color:var(--muted)}
 .warn{color:var(--amber)} .bad{color:var(--red)} .ok{color:var(--green)}
+.chk{background:var(--bg-2);border:1px solid var(--line);border-inline-start:4px solid var(--green);border-radius:12px;padding:12px 14px;display:grid;gap:6px;min-width:0}
+.chk.has-warn{border-inline-start-color:var(--amber)} .chk.has-err{border-inline-start-color:var(--red)}
+.chk h3{font-size:.95rem;font-weight:800}
+.chk ul{list-style:none;display:grid;gap:4px;font-size:.88rem;max-height:260px;overflow-y:auto}
+.chk li{padding-inline-start:22px;position:relative;overflow-wrap:anywhere}
+.chk li::before{position:absolute;inset-inline-start:0;font-weight:800}
+.chk li.e::before{content:"✕";color:var(--red)} .chk li.w::before{content:"!";color:var(--amber)} .chk li.n::before{content:"i";color:var(--cyan)}
+.chk code{font-family:var(--mono);font-size:.8rem;color:var(--text)}
 .sitebar{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:space-between;padding-bottom:6px;border-bottom:1px solid var(--line)}
 .sb-brand{display:flex;align-items:center;gap:8px;font-weight:800;color:var(--text);text-decoration:none}
 .sb-links{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center}.sb-links a{color:var(--muted);text-decoration:none;font-weight:600;font-size:.92rem}.sb-links a.btn{color:#04201c}
@@ -116,9 +124,10 @@ td{padding:5px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
   <section class="panel" id="dxf">
     <div class="top"><h2><span class="step">⚡</span>Import from AutoCAD (DXF)</h2>
       <div class="row no-print"><label class="btn pri" for="dxf-file" style="cursor:pointer">Choose DXF file</label><input type="file" id="dxf-file" accept=".dxf" hidden></div></div>
-    <p class="muted">In AutoCAD: <b>Save As → DXF</b>. The file is read in your browser and is not uploaded anywhere. The calculator reads the cable numbers written on the lines: <span class="tag">D 04 1 09</span> = type, location, patch number, jack. Jack 01–26 is a patch input, 51–76 a patch output. Patch code 9x means the cable goes straight to the device with no patch. Every coax cable to a patch runs Device → Termination (I-BNC) → Patch.</p>
+    <p class="muted">In AutoCAD: <b>Save As → DXF</b>. The file is read in your browser and is not uploaded anywhere. The calculator reads the cable numbers written on the lines: <span class="tag">D 04 1 09</span> = type, location, patch number, jack. Jack 01–26 is a patch input, 51–76 a patch output. Patch code 9x means the cable goes straight to the device with no patch. Every coax cable to a patch runs Device → Termination (I-BNC) → Patch. Before the bill of materials, a connection check flags two cables on one jack, jack numbers outside the patch rows and repeated numbers.</p>
     <div id="dxf-out" hidden>
       <p class="muted" id="dxf-title"></p>
+      <div class="chk" id="dxf-check"></div>
       <h3 style="font-size:.95rem">Cable types found <span class="muted" style="font-weight:400">(check the meaning of each prefix)</span></h3>
       <div class="tbl-wrap"><table id="dxf-map"></table></div>
       <div class="row"><label class="f" style="flex:0 1 220px">Jumper cable term → patch<input id="dxf-jcable" value="Belden 1855A"></label>
@@ -462,11 +471,40 @@ td{padding:5px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
     const tpTotal = tpPanels.reduce((x, p) => x + p.panels, 0), ppTotal = Object.keys(patches).length;
     return {by, conn, boot:boots, cable, s, patches, tpPanels, tpTotal, ppTotal, tps, nDirect, nPatched, nTP, bad};
   }
+  // Connection check, run before the BOM. Errors: a jack that two cables land on (e.g. SDI and AES on one video jack),
+  // a jack number outside the patch rows. Warnings: a number written more than twice, an unknown prefix. Notes: mixed signals on one patch.
+  function dxfCheck(){
+    const COAX = new Set(["BNC","DIN 1.0/2.3","HD-BNC","Mini-BNC"]), fam = c => COAX.has(c) ? "Video" : c;
+    const e = [], w = [], n = [], jacks = {}, pats = {}, unknown = new Set(), code = s => `<code>${esc(s)}</code>`;
+    Object.keys(dxf.cables).sort().forEach(k => {
+      const p = k[0], m = dxf.map[p]; if (!m.use) return;
+      if (!PREFIX[p]) unknown.add(p);
+      const times = dxf.cables[k].length;
+      if (times > 2) w.push(`${code(k)} is written ${times} times in the drawing. Check for a duplicate number.`);
+      const loc = k.slice(1,3), mid = k.slice(3,-2), jj = k.slice(-2), j = +jj;
+      if (mid.length === 2 && mid[0] === "9") return;
+      if (!(j >= 1 && j <= 26) && !(j >= 51 && j <= 76)){ e.push(`${code(k)}: jack ${jj} is not a patch position (01–26 in, 51–76 out). It is counted as a direct cable.`); return; }
+      const pk = fam(m.conn) + " patch " + mid + " · loc " + loc;
+      (jacks[pk + " · jack " + jj] = jacks[pk + " · jack " + jj] || []).push(k);
+      const pt = pats[pk] = pats[pk] || {}; (pt[p] = pt[p] || []).push(k);
+    });
+    Object.entries(jacks).forEach(([where, ks]) => { if (ks.length > 1)
+      e.push(`${esc(where)}: ${ks.length} cables on one jack (${ks.map(k => code(k) + " " + esc(dxf.map[k[0]].sig)).join(", ")}).`); });
+    unknown.forEach(p => w.push(`Prefix ${code(p)} is not a known cable type. Set its signal and connector in the table below.`));
+    Object.entries(pats).forEach(([where, by]) => { const t = Object.keys(by); if (t.length > 1)
+      n.push(`${esc(where)} carries ${t.map(p => esc(dxf.map[p].sig) + " ×" + by[p].length).join(", ")}. Fine if planned; check no prefix is wrong.`); });
+    return {e, w, all:[...e.map(x => ["e", x]), ...w.map(x => ["w", x]), ...n.map(x => ["n", x])]};
+  }
   function renderDxf(){
     if (!dxf) return;
     $("#dxf-out").hidden = false;
     const r = dxfCalc(), s = r.s, sp = v => withSpare(v, s);
-    $("#dxf-title").textContent = `${dxf.file} · ${Object.keys(dxf.cables).length} numbered cables · ${r.nPatched} to patch, ${r.nDirect} direct (patch code 9x) · quantities include ${s}% spare (without spare in brackets)` + (r.bad.length ? ` · ${r.bad.length} number(s) with an unexpected jack, counted as direct: ${r.bad.join(", ")}` : "");
+    $("#dxf-title").textContent = `${dxf.file} · ${Object.keys(dxf.cables).length} numbered cables · ${r.nPatched} to patch, ${r.nDirect} direct (patch code 9x) · quantities include ${s}% spare (without spare in brackets)`;
+    const ck = dxfCheck(), box = $("#dxf-check");
+    box.className = "chk" + (ck.e.length ? " has-err" : ck.w.length ? " has-warn" : "");
+    box.innerHTML = `<h3 class="${ck.e.length ? "bad" : ck.w.length ? "warn" : "ok"}">Connection check: ${ck.e.length ? `${ck.e.length} error${ck.e.length > 1 ? "s" : ""}` : "no errors"}${ck.w.length ? `, ${ck.w.length} warning${ck.w.length > 1 ? "s" : ""}` : ""}</h3>`
+      + (ck.e.length ? `<p class="muted">Fix the errors in the drawing before you order material: the quantities below are counted from the numbers as they are.</p>` : "")
+      + (ck.all.length ? `<ul>${ck.all.map(([t, m]) => `<li class="${t}">${m}</li>`).join("")}</ul>` : `<p class="muted">Every jack has one cable, every jack number is a valid patch position and no number is repeated.</p>`);
     $("#dxf-map").innerHTML = `<tr><th>Prefix</th><th>Cables</th><th>Signal</th><th>Connector</th><th>Cable</th><th>Count</th></tr>` + Object.keys(r.by).sort().map(p => { const m = dxf.map[p];
       return `<tr data-p="${esc(p)}"><td><span class="tag">${esc(p)}…</span></td><td class="n">${r.by[p]}</td><td><input data-m="sig" value="${esc(m.sig)}" aria-label="Signal for ${esc(p)}"></td><td><select data-m="conn" aria-label="Connector for ${esc(p)}">${opt(CONNS, m.conn)}</select></td><td><input data-m="cable" value="${esc(m.cable)}" aria-label="Cable for ${esc(p)}"></td><td><input data-m="use" type="checkbox" ${m.use ? "checked" : ""} aria-label="Count ${esc(p)}" style="width:auto"></td></tr>`; }).join("");
     const totConn = Object.entries(r.conn).filter(([k]) => !/I-BNC/.test(k)).reduce((a, [,v]) => a + sp(v), 0);
@@ -489,6 +527,9 @@ td{padding:5px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
     r.tpPanels.forEach(p => out.push([`Termination loc ${p.loc}: ${p.n} points`, p.panels, p.panels]));
     out.push([`Termination panels (${r.tps}-way)`, r.tpTotal, r.tpTotal]);
     if (r.bad.length) out.push(["Numbers with unexpected jack (counted as direct)", r.bad.join(" "), ""]);
+    const ck = dxfCheck(), plain = h => h.replace(/<[^>]+>/g, "").replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&amp;/g,"&");
+    out.push([`Connection check: ${ck.e.length} errors, ${ck.w.length} warnings`, "", ""]);
+    ck.all.forEach(([t, m]) => out.push([(t === "e" ? "ERROR: " : t === "w" ? "WARNING: " : "NOTE: ") + plain(m), "", ""]));
     return out;
   }
   $("#dxf-file").addEventListener("change", e => {
