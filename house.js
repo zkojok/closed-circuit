@@ -15,7 +15,8 @@
     did: 'What Home Assistant did', pick: 'Pick a scenario to watch the house react.',
     code: 'Show the automation (YAML)', hide: 'Hide the code',
     wa: 'I want this in my home', msg: 'Hi, I tried the smart house demo on closedcircuiteng.com. I want these in my home: ',
-    now: 'now', replay: 'Play again'
+    now: 'now', replay: 'Play again',
+    ctaT: 'Want this in your home?', ctaP: 'Send me the scenarios you tried and I will tell you what your home needs, on WhatsApp.', ctaB: 'Send on WhatsApp'
   } : {
     rooms: { liv: 'الصالون', kit: 'المطبخ', b1: 'غرفة النوم', b2: 'غرفة الولاد', bath: 'الحمّام', ut: 'غرفة الطاقة', roof: 'السطح الشمسي' },
     grid: 'الدولة', inv: 'إنفرتر', bat: 'بطارية',
@@ -24,7 +25,8 @@
     did: 'شو عمل Home Assistant', pick: 'اختار سيناريو وشوف البيت كيف بيتصرّف لحالو.',
     code: 'شوف الـ automation (YAML)', hide: 'خبّي الكود',
     wa: 'بدّي هيك ببيتي', msg: 'مرحبا، جرّبت البيت الذكي على closedcircuiteng.com. بدّي هالسيناريوهات ببيتي: ',
-    now: 'هلّق', replay: 'عيد'
+    now: 'هلّق', replay: 'عيد',
+    ctaT: 'بدّك هيك ببيتك؟', ctaP: 'ابعتلي السيناريوهات اللي جرّبتها، وبقلّك شو بيلزم بيتك، على واتساب.', ctaB: 'ابعت على واتساب'
   };
 
   // Devices: id -> [x, y, type, watts]
@@ -117,7 +119,8 @@
       return '<div><small>' + L[k] + '</small><b id="sh-' + k + '"></b></div>';
     }).join('') + '</div></div>' +
     '<div class="sh-side"><div class="sh-phone"><div class="sh-bar"><span id="sh-time"></span><span>Home Assistant</span></div><div id="sh-notes"></div></div>' +
-    '<div class="sh-log"><h4>' + L.did + '</h4><ol id="sh-log"><li class="muted">' + L.pick + '</li></ol></div></div>' +
+    '<div class="sh-log"><h4>' + L.did + '</h4><ol id="sh-log"><li class="muted">' + L.pick + '</li></ol></div>' +
+    '<div class="sh-cta" id="sh-cta" hidden><b>' + L.ctaT + '</b><p>' + L.ctaP + '</p><a class="btn btn-primary btn-sm" id="sh-cta-wa" target="_blank" rel="noopener">' + L.ctaB + '</a></div></div>' +
     '</div>' +
     '<div class="sh-foot"><button type="button" class="btn btn-ghost btn-sm" id="sh-code-btn" disabled>' + L.code + '</button>' +
     '<a class="btn btn-primary" id="sh-wa" target="_blank" rel="noopener">' + L.wa + '</a></div>' +
@@ -253,12 +256,13 @@
         li.textContent = step[0];
         log.appendChild(li);
         if (step[2]) note(step[2]);
+        if (i === sc.steps.length - 1) $('sh-cta').hidden = false;
       }, gap * (i + 1) - (reduce ? 0 : 500)));
     });
     var codeBtn = $('sh-code-btn');
     codeBtn.disabled = false;
     $('sh-code').querySelector('code').textContent = sc.yaml;
-    $('sh-wa').href = 'https://wa.me/' + WA + '?text=' + encodeURIComponent(L.msg + tried.join(EN ? ', ' : '، '));
+    $('sh-wa').href = $('sh-cta-wa').href = 'https://wa.me/' + WA + '?text=' + encodeURIComponent(L.msg + tried.join(EN ? ', ' : '، '));
     if (typeof gtag === 'function') gtag('event', 'smarthome_demo', { scenario: id, page: location.pathname });
   }
 

@@ -440,6 +440,12 @@ html[lang="en"] .lang-switch{font-family:"Tajawal",sans-serif}
 .sh-log ol{padding-inline-start:20px;color:var(--muted);font-size:.9rem;line-height:1.6}
 .sh-log li{animation:sh-in .4s ease-out;margin-bottom:4px}
 .sh-log li.muted{list-style:none;margin-inline-start:-20px}
+.sh-cta{background:var(--card);border:1px solid var(--cyan);border-radius:12px;padding:14px;display:grid;gap:8px;animation:sh-in .4s ease-out}
+.sh-cta p{color:var(--muted);font-size:.9rem;line-height:1.5;margin:0}
+.sh-cta .btn{justify-self:start}
+.cta-strip{margin-top:36px;display:flex;flex-wrap:wrap;gap:16px 24px;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-inline-start:4px solid var(--green);border-radius:var(--radius);padding:20px 24px}
+.cta-strip>div{display:grid;gap:4px;min-width:0;flex:1 1 320px}
+.cta-strip span{color:var(--muted);line-height:1.5}
 .sh-foot{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center}
 .sh-foot .btn[disabled]{opacity:.4;cursor:not-allowed;transform:none}
 .sh-code{background:#05080F;border:1px solid var(--line);border-radius:12px;padding:16px;overflow-x:auto;direction:ltr;text-align:left;font-size:.85rem;line-height:1.55;color:#A5F3FC;margin:0}
