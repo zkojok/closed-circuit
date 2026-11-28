@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>ناقص بالبيت</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@600;700&family=IBM+Plex+Sans+Arabic:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* One column: pick what ran out, tap the WhatsApp button, the message goes to dad. No data is stored. */
+:root{--bg:#EEF2F3;--surface:#fff;--sunk:#F3F6F7;--line:#D5DEE1;--ink:#10232A;--muted:#566A71;--band:#0F4C5C;--green:#1E9E6A;--wa:#1FA855;--on:#fff;
+  --display:"Readex Pro","IBM Plex Sans Arabic",Tahoma,sans-serif;--body:"IBM Plex Sans Arabic",Tahoma,sans-serif}
+@media (prefers-color-scheme:dark){:root{--bg:#0B171B;--surface:#132328;--sunk:#0F1D21;--line:#22363C;--ink:#E7F0F2;--muted:#93A9B0;--band:#0A3742;--green:#34C98C;--wa:#25D366;--on:#0B171B;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.6}
+.band{background:var(--band);color:#fff;padding:calc(env(safe-area-inset-top,0px) + 18px) 0 18px}
+.in{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{font-family:var(--display);margin:0;font-size:1.6rem}
+.band p{margin:2px 0 0;opacity:.8}
+main{padding-block:14px calc(110px + env(safe-area-inset-bottom,0px));display:grid;gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;display:grid;gap:8px}
+h2{font-family:var(--display);font-size:1rem;margin:0;color:var(--green)}
+.grid{display:flex;flex-wrap:wrap;gap:8px}
+.chip{position:relative}
+.chip input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.chip span{display:block;border:1.5px solid var(--line);background:var(--sunk);border-radius:999px;padding:6px 14px;font-weight:600}
+.chip input:checked + span{background:var(--green);border-color:var(--green);color:var(--on)}
+.chip input:focus-visible + span{outline:2px solid var(--band);outline-offset:2px}
+label.f{display:grid;gap:4px;font-size:.85rem;color:var(--muted)}
+input[type=text],select{font:inherit;color:var(--ink);background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:10px;width:100%}
+.bar{position:fixed;inset:auto 0 0 0;background:var(--surface);border-top:1px solid var(--line);padding:10px 0 calc(10px + env(safe-area-inset-bottom,0px))}
+.bar .in{display:flex;gap:10px;align-items:center}
+.bar b{flex:1;font-family:var(--display)}
+.wa{background:var(--wa);color:#fff;text-decoration:none;font-weight:700;border-radius:12px;padding:12px 18px;white-space:nowrap}
+.wa[aria-disabled="true"]{opacity:.45;pointer-events:none}
+.clear{background:none;border:0;color:var(--muted);font:inherit;text-decoration:underline;cursor:pointer}
+.lock{position:fixed;inset:0;background:var(--bg);display:grid;place-items:center;padding:16px;z-index:10}
+.lock form{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px;display:grid;gap:12px;width:min(320px,100%);text-align:center}
+.lock input{font:inherit;font-size:1.6rem;letter-spacing:.4em;text-align:center;direction:ltr;color:var(--ink);background:var(--sunk);border:1px solid var(--line);border-radius:12px;padding:10px}
+.lock button{font:inherit;font-weight:700;border:0;border-radius:12px;padding:12px;background:var(--band);color:#fff;cursor:pointer}
+.lock .err{color:#E0482B;min-height:1.4em;margin:0}
+</style>
+</head>
+<body>
+<div class="lock" id="lock"><form id="lock-form" autocomplete="off"><h1 style="color:var(--ink);font-size:1.3rem">شو ناقص بالبيت؟</h1><p style="margin:0;color:var(--muted)">اكتب الرمز</p><input id="pin" inputmode="numeric" maxlength="4" aria-label="الرمز" autocomplete="off"><button type="submit">فوت</button><p class="err" id="pin-err" role="status"></p></form></div>
+<header class="band"><div class="in"><h1>شو ناقص بالبيت؟</h1><p>علّم اللي خلص، واكبس «ابعت لبابا».</p></div></header>
+<main class="in">
+  <div class="card"><label class="f">مين عم يبعت؟<select id="who"><option value="">—</option><option>الكبير</option><option>الكبيرة</option><option>الصغيرة</option><option>ابن الـ 11</option></select></label></div>
+  <div id="cats"></div>
+  <div class="card"><h2>غرض مش موجود هون؟</h2><label class="f">اكتبه، وإذا أكتر من واحد افصل بينهن بفاصلة<input type="text" id="other" placeholder="مثلاً: شوكولا، بطاريات"></label></div>
+  <button class="clear" type="button" id="clear">امسح كل الاختيارات</button>
+</main>
+<div class="bar"><div class="in"><b id="count">ما اخترت شي</b><a class="wa" id="send" href="https://wa.me/96170368646" target="_blank" rel="noopener" aria-disabled="true">ابعت لبابا عالواتساب</a></div></div>
+<script>
+(() => {
+  const ITEMS = {
+    "خضرة وفواكه":["بندورة","خيار","بصل","ثوم","بطاطا","حامض","خس","بقدونس","تفّاح","موز"],
+    "لحمة ودجاج":["دجاج","لحمة مفرومة","صدر دجاج"],
+    "ألبان وأجبان":["حليب","لبن","لبنة","جبنة","بيض","زبدة"],
+    "بقالة":["رز","برغل","عدس","معكرونة","طحين","سكّر","ملح","زيت زيتون","زيت قلي","رب بندورة","حمّص حب","شاي","قهوة","زعتر","كورن فلكس","مربّى","تونة"],
+    "خبز":["خبز عربي","خبز توست"],
+    "تنظيف":["سائل جلي","مسحوق غسيل","كلور","محارم","ورق تواليت","أكياس زبالة","شامبو","صابون","معجون أسنان"],
+    "مدرسة":["دفاتر","أقلام","عصير للزوادة"]
+  };
+  const $ = s => document.querySelector(s), esc = s => s.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  $("#cats").innerHTML = Object.entries(ITEMS).map(([c, list], i) => `<div class="card"><h2>${c}</h2><div class="grid">${list.map((n, j) => `<label class="chip"><input type="checkbox" value="${esc(n)}" data-c="${esc(c)}" id="i${i}_${j}"><span>${esc(n)}</span></label>`).join("")}</div></div>`).join("");
+  function update(){
+    const picked = [...document.querySelectorAll("#cats input:checked")].map(x => x.value);
+    const extra = $("#other").value.split(/[،,]/).map(x => x.trim()).filter(Boolean);
+    const all = picked.concat(extra), who = $("#who").value;
+    $("#count").textContent = all.length ? `اخترت ${all.length}` : "ما اخترت شي";
+    const msg = `بابا، ناقص بالبيت${who ? ` (من ${who})` : ""}:\n` + all.map(n => "▫️ " + n).join("\n");
+    $("#send").href = "https://wa.me/96170368646?text=" + encodeURIComponent(msg);
+    $("#send").setAttribute("aria-disabled", String(!all.length));
+  }
+  document.addEventListener("change", update); $("#other").addEventListener("input", update);
+  $("#clear").addEventListener("click", () => { document.querySelectorAll("#cats input").forEach(x => x.checked = false); $("#other").value = ""; update(); });
+  update();
+
+  // Simple 4-digit lock. Stops casual visitors only; the code is remembered on the phone after the first entry.
+  const H = "9f44fad549f78f9610f3247857881505d5a35b23a954f990a13454fa923e895d";
+  const sha = async t => [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(t)))].map(b => b.toString(16).padStart(2, "0")).join("");
+  let ok = false; try { ok = localStorage.getItem("beit_ok") === H; } catch {}
+  if (ok) $("#lock").remove(); else $("#pin").focus();
+  $("#lock-form") && $("#lock-form").addEventListener("submit", async e => {
+    e.preventDefault();
+    if (await sha("beit:" + $("#pin").value.trim()) === H){ try { localStorage.setItem("beit_ok", H); } catch {} $("#lock").remove(); }
+    else { $("#pin-err").textContent = "الرمز غلط"; $("#pin").select(); }
+  });
+})();
+</script>
+</body>
+</html>
