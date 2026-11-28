@@ -10,8 +10,9 @@
   var L = EN ? {
     rooms: { liv: 'Living room', kit: 'Kitchen', b1: 'Bedroom', b2: 'Kids room', bath: 'Bath', ut: 'Power room', roof: 'Solar roof' },
     grid: 'Grid', inv: 'Inverter', bat: 'Battery',
-    src: 'Power source', soc: 'Battery', pv: 'Solar', load: 'Home load',
+    src: 'Power source', soc: 'Battery', pv: 'Solar', load: 'Home load', gridk: 'Grid',
     s: { grid: 'Grid', bat: 'Battery', pv: 'Solar' },
+    g: { off: 'Off', imp: 'Drawing ', exp: 'Exporting ', idle: 'Standby' }, toGrid: 'Back to the grid',
     did: 'What Home Assistant did', pick: 'Pick a scenario to watch the house react.',
     code: 'Show the automation (YAML)', hide: 'Hide the code',
     wa: 'I want this in my home', msg: 'Hi, I tried the smart house demo on closedcircuiteng.com. I want these in my home: ',
@@ -20,8 +21,9 @@
   } : {
     rooms: { liv: 'الصالون', kit: 'المطبخ', b1: 'غرفة النوم', b2: 'غرفة الولاد', bath: 'الحمّام', ut: 'غرفة الطاقة', roof: 'السطح الشمسي' },
     grid: 'الدولة', inv: 'إنفرتر', bat: 'بطارية',
-    src: 'مصدر الكهربا', soc: 'البطارية', pv: 'الشمس', load: 'استهلاك البيت',
+    src: 'مصدر الكهربا', soc: 'البطارية', pv: 'الشمس', load: 'استهلاك البيت', gridk: 'الدولة',
     s: { grid: 'الدولة', bat: 'البطارية', pv: 'الشمس' },
+    g: { off: 'مقطوعة', imp: 'عم ناخد ', exp: 'عم نرجّع ', idle: 'جاهزة' }, toGrid: 'راجع عالدولة',
     did: 'شو عمل Home Assistant', pick: 'اختار سيناريو وشوف البيت كيف بيتصرّف لحالو.',
     code: 'شوف الـ automation (YAML)', hide: 'خبّي الكود',
     wa: 'بدّي هيك ببيتي', msg: 'مرحبا، جرّبت البيت الذكي على closedcircuiteng.com. بدّي هالسيناريوهات ببيتي: ',
@@ -40,18 +42,18 @@
   };
 
   var BASE = {
-    time: '18:00', grid: true, soc: 78, pv: 0, lockOn: false, valveOpen: true, leak: false,
+    time: '18:00', grid: true, soc: 78, lockOn: false, valveOpen: true, leak: false,
     on: { l_liv: 1, l_kit: 1, fridge: 1, router: 1, ac_liv: 1 }
   };
 
   // Scenarios: name, start state, steps [log, change, notification?], YAML
   var SC = [
     {
-      id: 'outage', icon: '⚡',
-      name: EN ? 'Grid cut' : 'قطعت الدولة',
-      start: { time: '19:40', grid: true, pv: 0, soc: 78, on: { l_liv: 1, l_kit: 1, l_b1: 1, fridge: 1, router: 1, ac_liv: 1, heater: 1, washer: 1 } },
+      id: 'outage', icon: '🔋',
+      name: EN ? 'Grid cut at night' : 'قطعت الدولة بالليل',
+      start: { time: '19:40', grid: true, soc: 78, on: { l_liv: 1, l_kit: 1, l_b1: 1, fridge: 1, router: 1, ac_liv: 1, heater: 1, washer: 1 } },
       steps: [
-        [EN ? 'Grid went off. The inverter switched to battery in under 10 ms.' : 'قطعت الدولة. الإنفرتر حوّل عالبطارية بأقل من 10 ms.', { grid: false }],
+        [EN ? 'Grid went off after sunset, so there is no solar. The inverter switched to battery in under 10 ms.' : 'قطعت الدولة بعد المغرب، وما في شمس. الإنفرتر حوّل عالبطارية بأقل من 10 ms.', { grid: false }],
         [EN ? 'Turned off the water heater and washing machine (heavy loads).' : 'طفّى السخّان والغسالة (أحمال تقيلة).', { off: ['heater', 'washer'] }],
         [EN ? 'Fridge, router and lights stay on.' : 'البراد والراوتر واللمبات ضلّو شغّالين.', {}],
         [EN ? 'Sent you a notification.' : 'بعتلك إشعار عالتلفون.', {}, EN ? ['⚡ Grid off', 'On battery 78%. Lasts until about 03:00.'] : ['⚡ قطعت الدولة', 'عالبطارية 78%. بتكفّي لحدّ 3 الصبح تقريباً.']]
@@ -59,21 +61,33 @@
       yaml: 'alias: "Grid off: protect the battery"\ntriggers:\n  - trigger: state\n    entity_id: binary_sensor.grid_power\n    to: "off"\nactions:\n  - action: switch.turn_off\n    target:\n      entity_id:\n        - switch.water_heater\n        - switch.washing_machine\n  - action: notify.mobile_app_phone\n    data:\n      title: "⚡ Grid off"\n      message: >-\n        On battery {{ states(\'sensor.battery_soc\') }}%.\n        Lasts until about {{ states(\'sensor.battery_runtime_end\') }}.'
     },
     {
+      id: 'outage-day', icon: '⚡',
+      name: EN ? 'Grid cut by day' : 'قطعت الدولة بالنهار',
+      start: { time: '11:00', grid: true, soc: 84, on: { fridge: 1, router: 1, ac_liv: 1, heater: 1, washer: 1 } },
+      steps: [
+        [EN ? 'Grid went off. The house carried on from solar without a flicker.' : 'قطعت الدولة. البيت كمّل عالشمس بلا ما ينطفى شي.', { grid: false }],
+        [EN ? 'Solar covers the whole house, so the heater, washer and AC stay on.' : 'الشمس مغطّية كل البيت، فالسخّان والغسالة والمكيّف ضلّو شغّالين.', {}],
+        [EN ? 'The extra sun is charging the battery for tonight.' : 'الشمس الزايدة عم تشحن البطارية لليل.', { soc: 91 }],
+        [EN ? 'Sent you a notification.' : 'بعتلك إشعار عالتلفون.', {}, EN ? ['⚡ Grid off', 'Running on solar. Battery charging, 91%.'] : ['⚡ قطعت الدولة', 'البيت عالشمس، والبطارية عم تشحن 91%.']]
+      ],
+      yaml: 'alias: "Grid off by day: stay on solar"\ntriggers:\n  - trigger: state\n    entity_id: binary_sensor.grid_power\n    to: "off"\nconditions:\n  - condition: state\n    entity_id: sun.sun\n    state: above_horizon\nactions:\n  - if:\n      - condition: numeric_state\n        entity_id: sensor.solar_minus_load\n        below: 0\n    then:\n      - action: switch.turn_off\n        target:\n          entity_id: switch.water_heater\n  - action: notify.mobile_app_phone\n    data:\n      title: "⚡ Grid off"\n      message: >-\n        Running on solar. Battery {{ states(\'sensor.battery_soc\') }}%.'
+    },
+    {
       id: 'surplus', icon: '☀️',
       name: EN ? 'Noon solar surplus' : 'فائض شمس الضهر',
-      start: { time: '12:30', grid: false, pv: 4200, soc: 97, on: { fridge: 1, router: 1 } },
+      start: { time: '12:30', grid: true, soc: 100, on: { fridge: 1, router: 1 } },
       steps: [
-        [EN ? 'Battery is full and 4 kW of sun has nowhere to go.' : 'البطارية مليانة و4 kW شمس عم يروحو عالفاضي.', {}],
-        [EN ? 'Started the water heater on free solar.' : 'شغّل السخّان عالشمس ببلاش.', { on: ['heater'] }],
+        [EN ? 'Battery is full, so the spare sun is flowing back to the grid.' : 'البطارية مليانة، فالشمس الزايدة عم ترجع عالدولة.', {}],
+        [EN ? 'Used it at home first: started the water heater on free solar.' : 'استعملها بالبيت أوّل: شغّل السخّان عالشمس ببلاش.', { on: ['heater'] }],
         [EN ? 'Started the washing machine.' : 'شغّل الغسالة.', { on: ['washer'] }],
-        [EN ? 'Pre-cooled the living room before you get home.' : 'برّد الصالون قبل ما توصل عالبيت.', { on: ['ac_liv'] }, EN ? ['☀️ Free solar', 'Heater and washer started. Battery stays at 97%.'] : ['☀️ شمس ببلاش', 'شغّلت السخّان والغسالة. البطارية باقية 97%.']]
+        [EN ? 'Pre-cooled the living room. What is still left goes back to the grid on the net meter.' : 'برّد الصالون. واللي بيضل زايد بيرجع عالدولة وبينحسب عالعدّاد (net metering).', { on: ['ac_liv'] }, EN ? ['☀️ Free solar', 'Heater, washer and AC on solar. The rest goes back to the grid.'] : ['☀️ شمس ببلاش', 'السخّان والغسالة والمكيّف عالشمس، والباقي راجع عالدولة.']]
       ],
-      yaml: 'alias: "Solar surplus: use it, don\'t waste it"\ntriggers:\n  - trigger: numeric_state\n    entity_id: sensor.solar_power\n    above: 2500\n    for: "00:05:00"\nconditions:\n  - condition: numeric_state\n    entity_id: sensor.battery_soc\n    above: 95\nactions:\n  - action: switch.turn_on\n    target:\n      entity_id:\n        - switch.water_heater\n        - switch.washing_machine\n  - action: climate.set_temperature\n    target:\n      entity_id: climate.living_room_ac\n    data:\n      hvac_mode: cool\n      temperature: 23'
+      yaml: 'alias: "Solar surplus: use it, export the rest"\n# The inverter exports whatever the house does not use (net metering).\ntriggers:\n  - trigger: numeric_state\n    entity_id: sensor.grid_export_power\n    above: 1500\n    for: "00:05:00"\nconditions:\n  - condition: numeric_state\n    entity_id: sensor.battery_soc\n    above: 95\nactions:\n  - action: switch.turn_on\n    target:\n      entity_id:\n        - switch.water_heater\n        - switch.washing_machine\n  - action: climate.set_temperature\n    target:\n      entity_id: climate.living_room_ac\n    data:\n      hvac_mode: cool\n      temperature: 23'
     },
     {
       id: 'away', icon: '🚪',
       name: EN ? 'You left home' : 'طلعت من البيت',
-      start: { time: '08:15', grid: true, pv: 900, soc: 70, lockOn: false, on: { l_liv: 1, l_kit: 1, l_b1: 1, l_bath: 1, ac_liv: 1, ac_b1: 1, fridge: 1, router: 1 } },
+      start: { time: '08:15', grid: true, soc: 70, lockOn: false, on: { l_liv: 1, l_kit: 1, l_b1: 1, l_bath: 1, ac_liv: 1, ac_b1: 1, fridge: 1, router: 1 } },
       steps: [
         [EN ? 'Your phone left the home zone.' : 'تلفونك طلع من محيط البيت.', {}],
         [EN ? 'Turned off every light.' : 'طفّى كل اللمبات.', { off: ['l_liv', 'l_kit', 'l_b1', 'l_bath', 'l_b2'] }],
@@ -85,7 +99,7 @@
     {
       id: 'night', icon: '🌙',
       name: EN ? 'Bedtime' : 'وقت النوم',
-      start: { time: '23:30', grid: false, pv: 0, soc: 64, lockOn: false, on: { l_liv: 1, l_kit: 1, l_b1: 1, l_b2: 1, l_bath: 1, ac_liv: 1, fridge: 1, router: 1 } },
+      start: { time: '23:30', grid: false, soc: 64, lockOn: false, on: { l_liv: 1, l_kit: 1, l_b1: 1, l_b2: 1, l_bath: 1, ac_liv: 1, fridge: 1, router: 1 } },
       steps: [
         [EN ? 'It\'s 23:30 and the TV went off.' : 'صارت 11:30 وانطفى التلفزيون.', {}],
         [EN ? 'Turned off the living room, kitchen and bath lights.' : 'طفّى ضو الصالون والمطبخ والحمّام.', { off: ['l_liv', 'l_kit', 'l_bath', 'l_b2'] }],
@@ -97,7 +111,7 @@
     {
       id: 'leak', icon: '💧',
       name: EN ? 'Water leak' : 'تسريب مي',
-      start: { time: '14:05', grid: true, pv: 2600, soc: 90, valveOpen: true, leak: false, on: { fridge: 1, router: 1, washer: 1 } },
+      start: { time: '14:05', grid: true, soc: 90, valveOpen: true, leak: false, on: { fridge: 1, router: 1, washer: 1 } },
       steps: [
         [EN ? 'The leak sensor under the kitchen sink got wet.' : 'حسّاس المي تحت مجلى المطبخ تبلّل.', { leak: true }],
         [EN ? 'Closed the main water valve within 2 seconds.' : 'سكّر محبس المي الرئيسي خلال ثانيتين.', { valveOpen: false }],
@@ -115,7 +129,7 @@
     }).join('') + '</div>' +
     '<div class="sh-main">' +
     '<div class="sh-house"><svg id="sh-svg" viewBox="0 0 1536 1290" role="img" aria-label="' + (EN ? 'Smart house floor plan' : 'مخطط البيت الذكي') + '"></svg>' +
-    '<div class="sh-stats">' + ['src', 'soc', 'pv', 'load'].map(function (k) {
+    '<div class="sh-stats">' + ['src', 'pv', 'load', 'soc', 'gridk'].map(function (k) {
       return '<div><small>' + L[k] + '</small><b id="sh-' + k + '"></b></div>';
     }).join('') + '</div></div>' +
     '<div class="sh-side"><div class="sh-phone"><div class="sh-bar"><span id="sh-time"></span><span>Home Assistant</span></div><div id="sh-notes"></div></div>' +
@@ -171,6 +185,7 @@
   svg.appendChild(el('text', { x: 975, y: 214, id: 'sh-battxt', 'class': 'sh-dl strong' }, ''));
   svg.appendChild(el('circle', { cx: 1420, cy: 95, r: 18, id: 'sh-gridpt', 'class': 'sh-gridpt' }));
   svg.appendChild(el('text', { x: 1420, y: 160, 'class': 'sh-dl small' }, L.grid));
+  svg.appendChild(el('text', { x: 1225, y: 62, id: 'sh-exptxt', 'class': 'sh-dl small sh-exp' }, L.toGrid));
 
   // devices
   var ICON = {
@@ -195,10 +210,17 @@
   // ---------- state ----------
   var st, timers = [], current = null, tried = [];
   function clone(o) { return JSON.parse(JSON.stringify(o)); }
+  // Solar output follows the clock: zero from 18:00 to 06:00, about 4.5 kW at midday.
+  function pvAt(t) {
+    var p = t.split(':'), h = +p[0] + (+p[1] || 0) / 60;
+    if (h <= 6 || h >= 18) return 0;
+    return Math.round(4500 * Math.pow(Math.sin(Math.PI * (h - 6) / 12), 1.3) / 100) * 100;
+  }
   function setState(s) {
     st = clone(BASE);
     Object.keys(s).forEach(function (k) { st[k] = clone(s[k]); });
     st.dim = {};
+    st.pv = pvAt(st.time);
   }
 
   function render() {
@@ -222,20 +244,31 @@
     });
     svg.classList.toggle('night', !day);
 
-    var charging = st.grid || st.pv > load;
-    var src = st.grid ? 'grid' : st.pv >= load ? 'pv' : 'bat';
+    // Solar first. Spare sun charges the battery, then (battery full, grid on) flows back to the grid.
+    // A shortfall comes from the grid when it is on, otherwise from the battery.
+    var net = st.pv - load, full = st.soc >= 98;
+    var exp = net > 0 && full && st.grid ? net : 0;
+    var imp = net < 0 && st.grid ? -net : 0;
+    var batIn = net > 0 && !full, batOut = net < 0 && !st.grid;
+    var parts = [];
+    if (st.pv > 0) parts.push(L.s.pv);
+    if (imp) parts.push(L.s.grid);
+    if (batOut) parts.push(L.s.bat);
+    var kw = function (w) { return (w / 1000).toFixed(1) + ' kW'; };
     $('sh-f-pv').setAttribute('class', 'sh-flow' + (st.pv > 0 ? ' on pv' : ''));
-    $('sh-f-grid').setAttribute('class', 'sh-flow' + (st.grid ? ' on grid' : ''));
-    $('sh-f-bat').setAttribute('class', 'sh-flow on bat' + (charging ? '' : ' rev'));
+    $('sh-f-grid').setAttribute('class', 'sh-flow grid' + (imp ? ' on' : exp ? ' on rev exp' : ''));
+    $('sh-f-bat').setAttribute('class', 'sh-flow bat' + (batIn ? ' on' : batOut ? ' on rev' : ''));
     $('sh-f-home').setAttribute('class', 'sh-flow on home');
-    $('sh-gridpt').setAttribute('class', 'sh-gridpt' + (st.grid ? ' on' : ''));
+    $('sh-gridpt').setAttribute('class', 'sh-gridpt' + (st.grid ? ' on' : '') + (exp ? ' exp' : ''));
+    $('sh-exptxt').setAttribute('class', 'sh-dl small sh-exp' + (exp ? ' on' : ''));
+    $('sh-gridk').textContent = !st.grid ? L.g.off : exp ? L.g.exp + kw(exp) : imp ? L.g.imp + kw(imp) : L.g.idle;
     var h = Math.max(4, 74 * st.soc / 100);
     var fill = $('sh-batfill');
     fill.setAttribute('y', 168 + 74 - h); fill.setAttribute('height', h);
     fill.setAttribute('class', 'sh-batfill' + (st.soc < 30 ? ' low' : ''));
     $('sh-battxt').textContent = st.soc + '%';
 
-    $('sh-src').textContent = L.s[src];
+    $('sh-src').textContent = parts.join(' + ');
     $('sh-soc').textContent = st.soc + '%';
     $('sh-pv').textContent = (st.pv / 1000).toFixed(1) + ' kW';
     $('sh-load').textContent = (load / 1000).toFixed(load < 1000 ? 2 : 1) + ' kW';
