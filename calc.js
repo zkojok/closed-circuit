@@ -37,7 +37,8 @@
   ];
 
   var T = EN ? {
-    dev: 'Appliance', qty: 'Qty', hrs: 'Hours/day',
+    dev: 'Appliance', w: 'Watts', qty: 'Qty', hrs: 'Hours/day',
+    wHint: 'Change the watts to match your own appliances (the label or the manual). For a fridge or an inverter AC, use the average: they cycle on and off, so it is lower than the rating on the label.',
     out: 'Hours without grid power per day', outS: 'Grid off', h: 'h',
     ori: 'Where can the panels face?', dist: 'Cable run from panels to inverter (m)',
     daily: 'Daily use', inv: 'Inverter', bat: 'Lithium battery 48V', pv: 'Solar panels',
@@ -58,7 +59,8 @@
     wa: 'Send me my result on WhatsApp',
     msg: 'Hi, I used the solar calculator on closedcircuiteng.com.\n'
   } : {
-    dev: 'الجهاز', qty: 'العدد', hrs: 'ساعات/يوم',
+    dev: 'الجهاز', w: 'واط', qty: 'العدد', hrs: 'ساعات/يوم',
+    wHint: 'غيّر الواط حسب أجهزتك (مكتوب عالجهاز أو بالكتالوغ). للبراد والمكيّف الإنفرتر اكتب المعدّل: بيشتغلوا وبيطفّوا، فمعدّلهن أقل من الرقم المكتوب عليهن.',
     out: 'كم ساعة بلا كهرباء الدولة باليوم؟', outS: 'ساعات انقطاع الدولة', h: 'ساعة',
     ori: 'لوين فيك توجّه الألواح؟', dist: 'طول الكابل من الألواح للإنفرتر (متر)',
     daily: 'الاستهلاك اليومي', inv: 'الإنفرتر', bat: 'بطارية ليثيوم 48V', pv: 'الألواح',
@@ -81,16 +83,19 @@
   };
 
   var rows = A.map(function (a, i) {
-    return '<div class="calc-row"><span>' + (EN ? a[1] : a[0]) + ' <small>' + a[2] + 'W</small></span>' +
-      '<input type="number" min="0" max="50" step="1" value="' + a[4] + '" data-i="' + i + '" data-k="q" aria-label="' + T.qty + '">' +
-      '<input type="number" min="0" max="24" step="0.5" value="' + a[5] + '" data-i="' + i + '" data-k="h" aria-label="' + T.hrs + '"></div>';
+    var name = EN ? a[1] : a[0];
+    return '<div class="calc-row"><span>' + name + '</span>' +
+      '<input type="number" min="0" max="10000" step="1" inputmode="numeric" value="' + a[2] + '" data-i="' + i + '" data-k="w" aria-label="' + T.w + ' · ' + name + '">' +
+      '<input type="number" min="0" max="50" step="1" value="' + a[4] + '" data-i="' + i + '" data-k="q" aria-label="' + T.qty + ' · ' + name + '">' +
+      '<input type="number" min="0" max="24" step="0.5" value="' + a[5] + '" data-i="' + i + '" data-k="h" aria-label="' + T.hrs + ' · ' + name + '"></div>';
   }).join('');
   var opts = ORI.map(function (o, i) { return '<option value="' + i + '">' + (EN ? o.en : o.ar) + '</option>'; }).join('');
   var spec = function (id, label) { return '<div><dt>' + label + '</dt><dd id="' + id + '"></dd></div>'; };
 
   root.innerHTML =
     '<div class="calc-grid"><div class="calc-in">' +
-    '<div class="calc-row calc-head"><span>' + T.dev + '</span><span>' + T.qty + '</span><span>' + T.hrs + '</span></div>' + rows +
+    '<p class="calc-hint">' + T.wHint + '</p>' +
+    '<div class="calc-row calc-head"><span>' + T.dev + '</span><span>' + T.w + '</span><span>' + T.qty + '</span><span>' + T.hrs + '</span></div>' + rows +
     '<label class="calc-out"><span>' + T.out + ' <b id="c-o-v"></b></span><input type="range" id="c-o" min="0" max="24" step="1" value="20"></label>' +
     '<div class="calc-opts"><label><span>' + T.ori + '</span><select id="c-r">' + opts + '</select></label>' +
     '<label><span>' + T.dist + '</span><input type="number" id="c-l" min="1" max="100" step="1" value="15"></label></div>' +
@@ -129,12 +134,12 @@
   function calc() {
     var wh = 0, run = 0, surge = 0, lines = [];
     A.forEach(function (a, i) {
-      var q = val(i, 'q'), h = Math.min(val(i, 'h'), 24);
-      if (!q) return;
-      wh += a[2] * q * h;
-      run += a[2] * q;
-      surge = Math.max(surge, (a[3] - a[2]) * Math.min(q, 1));
-      if (h) lines.push((EN ? a[1] : a[0]) + ' ×' + q + ' (' + h + (EN ? 'h' : 'س') + ')');
+      var q = val(i, 'q'), h = Math.min(val(i, 'h'), 24), w = Math.min(val(i, 'w'), 10000);
+      if (!q || !w) return;
+      wh += w * q * h;
+      run += w * q;
+      surge = Math.max(surge, w * (a[3] / a[2] - 1) * Math.min(q, 1));
+      if (h) lines.push((EN ? a[1] : a[0]) + ' ' + w + 'W ×' + q + ' (' + h + (EN ? 'h' : 'س') + ')');
     });
     var out = +$('c-o').value;
     $('c-o-v').textContent = out + ' ' + T.h;

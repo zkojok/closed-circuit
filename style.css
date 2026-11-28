@@ -300,8 +300,9 @@ html[lang="en"] .lang-switch{font-family:"Tajawal",sans-serif}
 /* Solar calculator */
 #solar-calc{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:28px}
 .calc-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:32px;align-items:start}
-.calc-row{display:grid;grid-template-columns:1fr 72px 88px;gap:10px;align-items:center;padding:6px 0;border-bottom:1px dashed var(--line)}
+.calc-row{display:grid;grid-template-columns:minmax(0,1fr) 80px 64px 80px;gap:10px;align-items:center;padding:6px 0;border-bottom:1px dashed var(--line)}
 .calc-row span small{color:var(--muted);font-size:.8rem;direction:ltr;display:inline-block}
+.calc-hint{margin:0 0 10px;color:var(--muted);font-size:.85rem;line-height:1.6}
 .calc-head{font-weight:700;color:var(--muted);font-size:.9rem;border-bottom:1px solid var(--line)}
 .calc-row input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 8px;color:var(--text);font-family:inherit;font-size:1rem;text-align:center}
 .calc-row input:focus{outline:none;border-color:var(--cyan)}
@@ -320,7 +321,8 @@ html[lang="en"] .lang-switch{font-family:"Tajawal",sans-serif}
   .calc-grid{grid-template-columns:1fr}
   .calc-res{position:static}
   #solar-calc{padding:18px}
-  .calc-row{grid-template-columns:1fr 60px 72px}
+  .calc-row{grid-template-columns:minmax(0,1fr) 70px 54px 64px;gap:6px}
+  .calc-row input{padding:7px 4px}
 }
 .calc-opts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
 .calc-opts label span{display:block;font-weight:700;font-size:.92rem;margin-bottom:6px}
